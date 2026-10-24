@@ -91,6 +91,34 @@ html.theme-customizer-enabled #layout-content {
     overflow: hidden;
 }
 
+@media screen and (min-width: 769px) {
+    html.theme-customizer-enabled.tc-mail-single #layout-sidebar {
+        display: flex !important;
+        flex: 0 0 250px;
+        width: 250px;
+        max-width: 30%;
+        min-width: 220px;
+    }
+
+    html.theme-customizer-enabled.tc-mail-single:not(.tc-mail-reader) #layout-content,
+    html.theme-customizer-enabled.tc-mail-single.tc-mail-reader #layout-list {
+        display: none !important;
+    }
+
+    html.theme-customizer-enabled.tc-mail-single:not(.tc-mail-reader) #layout-list,
+    html.theme-customizer-enabled.tc-mail-single.tc-mail-reader #layout-content {
+        display: flex !important;
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
+        min-width: 0;
+    }
+
+    html.theme-customizer-enabled.tc-mail-single.tc-mail-reader #layout-content .back-list-button {
+        display: inline-flex !important;
+    }
+}
+
 html.theme-customizer-enabled.tc-message-shell #layout-content {
     background-color: var(--tc-message-fill);
     background-image: linear-gradient(rgba(250,252,255,var(--tc-message-surface)), rgba(250,252,255,var(--tc-message-surface))), var(--tc-message-wallpaper);

@@ -87,7 +87,8 @@ class theme_customizer extends rcube_plugin
             'position' => 'center', 'fill' => '#e8edf3',
             'messageMode' => 'theme', 'messageBackground' => 'none', 'messageFill' => '#f7f9fc',
             'messageSurface' => 94, 'messageFit' => 'cover', 'messagePosition' => 'center',
-            'messageBodyMode' => 'original', 'messageBodyFill' => '#26323d'];
+            'messageBodyMode' => 'original', 'messageBodyFill' => '#26323d',
+            'mailView' => 'single'];
     }
 
     private function settings()
@@ -118,7 +119,8 @@ class theme_customizer extends rcube_plugin
         foreach (['preset' => array_merge(['custom'], array_keys($this->presets())), 'mode' => ['light','dark','system'],
             'density' => ['compact','normal','spacious'], 'fit' => ['cover','contain'], 'messageFit' => ['cover','contain'],
             'position' => ['center','top','bottom','left','right'], 'messagePosition' => ['center','top','bottom','left','right'],
-            'messageMode' => ['theme','custom'], 'messageBodyMode' => ['original','reading','custom']] as $key => $allowed) {
+            'messageMode' => ['theme','custom'], 'messageBodyMode' => ['original','reading','custom'],
+            'mailView' => ['single','split']] as $key => $allowed) {
             if (!is_string($x[$key]) || !in_array($x[$key], $allowed, true)) return false;
         }
         foreach (['accent','fill','messageFill','messageBodyFill'] as $key) {

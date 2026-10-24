@@ -173,6 +173,9 @@
         root.classList.toggle('tc-message-low', state.messageSurface < 70);
         root.classList.toggle('tc-body-restyled', bodyLook.active);
         root.classList.toggle('tc-message-shell', !!(document.getElementById('messagecontframe') || document.getElementById('message-header')));
+        root.classList.toggle('tc-mail-single', state.mailView === 'single' && rcmail.env.task === 'mail'
+            && !rcmail.env.action && !!document.getElementById('messagecontframe'));
+        if (!root.classList.contains('tc-mail-single')) root.classList.remove('tc-mail-reader');
         syncMessageFrame(dark, state.messageSurface < 70, bodyLook);
         syncComposeEditor(bodyLook);
         root.style.setProperty('--tc-wallpaper', backgroundUrl(state.background) ? 'url(' + JSON.stringify(backgroundUrl(state.background)) + ')' : 'none');
@@ -450,6 +453,7 @@
     function renderControls() {
         const section = panel.querySelector('#tc-section-interface');
         section.replaceChildren(
+            selectField('mailView', t('mail_view'), [['single', t('mail_view_single')], ['split', t('mail_view_split')]]),
             selectField('mode', t('mode'), ['system','light','dark'].map(x => [x,t(x)])),
             colorField('accent', t('accent')),
             rangeField('surface', t('surface'), 10, 100, '%'),
@@ -483,7 +487,8 @@
             draft = Object.assign({}, saved, { preset:'neutral', background:'none', mode:'system', accent:'#3975c6',
                 surface:94, radius:12, text:14, density:'normal', dim:0, blur:0, fit:'cover', position:'center', fill:'#e8edf3',
                 messageMode:'theme', messageBackground:'none', messageFill:'#f7f9fc', messageSurface:94,
-                messageFit:'cover', messagePosition:'center', messageBodyMode:'original', messageBodyFill:'#26323d' });
+                messageFit:'cover', messagePosition:'center', messageBodyMode:'original', messageBodyFill:'#26323d',
+                mailView:'single' });
             apply(draft); renderChoices(); renderControls(); message(t('reset_preview'));
         }), makeButton(t('cancel'), 'tc-secondary', () => cancelAndClose()),
         makeButton(t('save'), 'tc-primary', save));
@@ -573,9 +578,30 @@
 
     media.addEventListener('change', () => requestAnimationFrame(() => apply(opened ? draft : saved)));
     window.addEventListener('resize', updateModal);
+    document.addEventListener('click', event => {
+        if (!root.classList.contains('tc-mail-single') || window.innerWidth < 769
+            || !event.target.closest('#layout-content .back-list-button')) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        root.classList.remove('tc-mail-reader');
+        rcmail.show_contentframe(false);
+        rcmail.message_list?.clear_selection();
+        document.getElementById('messagelist-content')?.focus({ preventScroll: true });
+    }, true);
     apply(saved);
     rcmail.addEventListener('init', () => {
         rcmail.register_command('plugin.theme_customizer.open', open, true);
+        if (rcmail.env.task === 'mail' && document.getElementById('messagecontframe')) {
+            const originalDoubleClick = rcmail.msglist_dbl_click;
+            rcmail.msglist_dbl_click = function (list) {
+                if (root.classList.contains('tc-mail-single') && window.innerWidth >= 769) {
+                    window.clearTimeout(rcmail.preview_timer);
+                    rcmail.msglist_get_preview();
+                    return;
+                }
+                return originalDoubleClick.call(this, list);
+            };
+        }
         if (Array.isArray(rcmail.env.compose_commands)
             && !rcmail.env.compose_commands.includes('plugin.theme_customizer.open')) {
             rcmail.env.compose_commands.push('plugin.theme_customizer.open');
@@ -593,6 +619,12 @@
             const state = opened ? draft : saved;
             syncMessageFrame(root.classList.contains('tc-dark'), root.classList.contains('tc-message-low'),
                 bodyAppearance(state, root.classList.contains('tc-dark')));
+            if (root.classList.contains('tc-mail-single')) {
+                let messageLoaded = false;
+                try { messageLoaded = !!frame.contentDocument?.getElementById('message-header'); }
+                catch (_) { /* The native preview controls access to its frame. */ }
+                root.classList.toggle('tc-mail-reader', messageLoaded);
+            }
         });
         apply(saved);
     });

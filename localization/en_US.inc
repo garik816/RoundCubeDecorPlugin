@@ -15,6 +15,8 @@ $labels = [
     'left' => 'Left', 'right' => 'Right', 'dim' => 'Image dimming', 'blur' => 'Image blur',
     'mode' => 'Mode', 'system' => 'System', 'light' => 'Light', 'dark' => 'Dark',
     'accent' => 'Accent color', 'surface' => 'Panel opacity',
+    'mail_view' => 'Mail layout', 'mail_view_single' => 'List, then full message',
+    'mail_view_split' => 'List with preview pane',
     'message_help' => 'Customize the message reading background separately from the rest of your mail.',
     'message_source' => 'Background source', 'message_from_theme' => 'Use theme background',
     'message_separate' => 'Separate background',

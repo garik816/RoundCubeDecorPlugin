@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 — 2026-10-25
+
+- Added a per-user mail layout setting, defaulting to a wide message list with the folder menu beside it.
+- Opened messages replace the list across the available workspace, and Back returns to the list without an empty preview pane.
+- Kept the previous split preview layout as an optional setting.
+
 ## 0.6.0 — 2026-10-25
 
 - Applied the selected message-body color scheme to the HTML and plain-text compose editors.

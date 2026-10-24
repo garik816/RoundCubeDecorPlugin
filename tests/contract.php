@@ -95,11 +95,16 @@ $defaults = callPrivate($plugin, 'defaults');
 check(callPrivate($plugin, 'validate', $defaults) === $defaults, 'default settings accepted');
 check($defaults['messageMode'] === 'theme' && $defaults['messageSurface'] === 94, 'message area defaults to theme background');
 check($defaults['messageBodyMode'] === 'original', 'existing message bodies keep sender styling by default');
+check($defaults['mailView'] === 'single', 'mail defaults to list then full message');
+foreach (['single', 'split'] as $view) {
+    $candidate = $defaults; $candidate['mailView'] = $view;
+    check(callPrivate($plugin, 'validate', $candidate) !== false, $view . ' mail layout accepted');
+}
 foreach ([10, 100] as $surface) {
     $candidate = $defaults; $candidate['surface'] = $surface;
     check(callPrivate($plugin, 'validate', $candidate) !== false, $surface . '% panel opacity accepted');
 }
-foreach (['mode' => 'evil', 'background' => '../../config', 'accent' => 'red', 'surface' => 0, 'density' => 'huge', 'radius' => 25] as $key => $bad) {
+foreach (['mode' => 'evil', 'background' => '../../config', 'accent' => 'red', 'surface' => 0, 'density' => 'huge', 'radius' => 25, 'mailView' => 'empty'] as $key => $bad) {
     $candidate = $defaults; $candidate[$key] = $bad;
     check(callPrivate($plugin, 'validate', $candidate) === false, 'invalid ' . $key . ' rejected');
 }
