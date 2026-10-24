@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "presets": {
+    "neutral": {"mode": "system", "accent": "#3975c6", "surface": 94},
+    "mountains": {"mode": "light", "accent": "#3975c6", "surface": 92},
+    "forest": {"mode": "light", "accent": "#327d66", "surface": 92},
+    "sea": {"mode": "light", "accent": "#1684a0", "surface": 92},
+    "sunset": {"mode": "light", "accent": "#aa6040", "surface": 92},
+    "space": {"mode": "dark", "accent": "#8c79dc", "surface": 92},
+    "abstract": {"mode": "dark", "accent": "#9072d2", "surface": 92}
+  }
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>theme_customizer local UI fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; font: 14px system-ui; }
+    #layout-menu { position: fixed; inset: 0 auto 0 0; width: 90px; background: #eef3f8; }
+    #taskmenu { display: grid; padding: 12px; gap: 12px; }
+    #taskmenu a { color: #233; padding: 12px 4px; text-decoration: none; text-align: center; }
+    #layout { margin-left: 90px; display: flex; height: 100%; }
+    #layout-sidebar { width: 20%; min-width: 0; padding: 16px; }
+    #layout-list { width: 30%; min-width: 0; padding: 16px; }
+    #layout-content { flex: 1; min-width: 0; padding: 16px; }
+    .messagelist { width: 100%; border-collapse: collapse; }
+    .messagelist td { border-bottom: 1px solid #cbd3d9; padding: 10px; }
+    #test-results { position: fixed; left: 110px; bottom: 10px; z-index: 3; color: #263; }
+    @media (max-width: 600px) { #layout-menu { width: 56px; } #layout { margin-left: 56px; } #layout-sidebar, #layout-list { display: none; } }
+  </style>
+  <link rel="stylesheet" href="../styles/theme_customizer.css">
+  <script>
+    const presets = {
+      neutral: {background:'none',mode:'system',accent:'#3975c6',surface:94},
+      mountains:{background:'mountains',mode:'light',accent:'#3975c6',surface:92},
+      forest:{background:'forest',mode:'light',accent:'#327d66',surface:92},
+      sea:{background:'sea',mode:'light',accent:'#1684a0',surface:92},
+      sunset:{background:'sunset',mode:'light',accent:'#aa6040',surface:92},
+      space:{background:'space',mode:'dark',accent:'#8c79dc',surface:92},
+      abstract:{background:'abstract',mode:'dark',accent:'#9072d2',surface:92}
+    };
+    const builtins = {};
+    Object.keys(presets).forEach(id => { builtins[id] = id === 'neutral' ? {full:'',thumb:''} : {full:'../backgrounds/full/'+id+'.jpg',thumb:'../backgrounds/thumbs/'+id+'.jpg'}; });
+    window.rcmail = {
+      env: {request_token:'fixture', theme_customizer:{settings:{v:1,rev:'',preset:'neutral',background:'none',mode:'system',accent:'#3975c6',surface:94,radius:12,text:14,density:'normal',dim:0,blur:0,fit:'cover',position:'center',fill:'#e8edf3',messageMode:'theme',messageBackground:'none',messageFill:'#f7f9fc',messageSurface:94,messageFit:'cover',messagePosition:'center',messageBodyMode:'original',messageBodyFill:'#26323d'},presets,builtins,images:[],api:'fixture-api',formats:['JPEG','PNG'],upload:''}},
+      commands:{}, listeners:{},
+      gettext(key){return key;},
+      addEventListener(name,fn){this.listeners[name]=fn;},
+      register_command(name,fn){this.commands[name]=fn;},
+      display_message(text){document.body.dataset.toast=text;}
+    };
+  </script>
+  <script src="../js/theme_customizer.js"></script>
+</head>
+<body>
+  <nav id="layout-menu"><div id="taskmenu"><a href="#">Почта</a><a class="tc-nav" href="#" id="appearance-button">Оформление</a><a class="theme" href="#">Тема</a><a href="#">Настройки</a></div></nav>
+  <main id="layout">
+    <aside id="layout-sidebar"><h2>Папки</h2><p>Входящие</p><p>Черновики</p></aside>
+    <section id="layout-list"><h2>Письма</h2><table class="messagelist"><tr><td>Новое письмо</td></tr><tr class="selected"><td>Выбранное письмо</td></tr><tr><td>Отчёт</td></tr></table></section>
+    <section id="layout-content"><h2 id="message-header">Письмо</h2><p>Пример содержимого для проверки прозрачности.</p></section>
+  </main>
+  <div id="test-results"></div>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const results = [];
+      const check = (ok, name) => results.push((ok ? 'OK ' : 'FAIL ') + name);
+      rcmail.listeners.init();
+      const button = document.getElementById('appearance-button');
+      button.focus();
+      rcmail.commands['plugin.theme_customizer.open']();
+      check(!document.getElementById('tc-panel').hidden, 'panel opens');
+      check(document.querySelectorAll('[data-tc-choice^="preset:"]').length === 7, 'seven themes');
+      check(document.querySelectorAll('.tc-tab').length === 4, 'message background tab');
+      document.querySelector('[data-tc-choice="preset:space"]').click();
+      check(document.documentElement.classList.contains('tc-dark'), 'dark preset preview');
+      document.querySelector('.tc-panel').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+      check(document.getElementById('tc-panel').hidden && !document.documentElement.classList.contains('tc-dark'), 'Escape restores saved mode');
+      check(document.activeElement === button, 'focus returns to button');
+      rcmail.commands['plugin.theme_customizer.open']();
+      document.querySelector('[data-tc-choice="preset:forest"]').click();
+      check(document.documentElement.style.getPropertyValue('--tc-wallpaper').includes('forest.jpg'), 'preset wallpaper preview');
+      check(document.documentElement.scrollWidth <= window.innerWidth, 'no horizontal overflow');
+      if (location.hash === '#dark') document.querySelector('[data-tc-choice="preset:space"]').click();
+      if (location.hash === '#interface') document.getElementById('tc-tab-interface').click();
+      document.getElementById('test-results').textContent = results.join(' | ');
+      document.body.dataset.tests = results.every(x => x.startsWith('OK')) ? 'passed' : 'failed';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<?php
+// Copy these values into an included Roundcube config file, outside this plugin.
+// Keep this directory outside /var/www/html and mount it as a persistent volume.
+$config['theme_customizer_storage'] = '/var/roundcube/theme_customizer';
+$config['theme_customizer_max_file'] = 10 * 1024 * 1024;
+$config['theme_customizer_max_pixels'] = 24 * 1000 * 1000;
+$config['theme_customizer_max_images'] = 20;
+$config['theme_customizer_max_bytes'] = 100 * 1024 * 1024;
+$config['theme_customizer_pending_ttl'] = 24 * 60 * 60;

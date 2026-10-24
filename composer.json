@@ -1,0 +1,17 @@
+{
+  "name": "textmediary/theme-customizer",
+  "type": "roundcube-plugin",
+  "description": "Local Elastic appearance themes and private personal backgrounds for Roundcube",
+  "version": "0.6.0",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.1 <8.6",
+    "roundcube/plugin-installer": "~0.3.5"
+  },
+  "suggest": {
+    "ext-imagick": "Required for personal JPEG, PNG and optional WebP uploads"
+  },
+  "autoload": {
+    "classmap": ["theme_customizer.php"]
+  }
+}
