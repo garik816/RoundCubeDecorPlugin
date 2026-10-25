@@ -35,8 +35,10 @@ class FakeOutput
 {
     public $type = 'html';
     public $env = [];
+    public $labels = [];
     public function set_env($key, $value) { $this->env[$key] = $value; }
     public function asset_url($path) { return 'static.php/' . ltrim($path, '/'); }
+    public function add_label($name) { $this->labels[] = $name; }
 }
 class rcmail
 {
@@ -45,6 +47,7 @@ class rcmail
     public $config;
     public $output;
     public $db;
+    public $texts = [];
     public function __construct()
     {
         $this->user = (object)['ID' => 10];
@@ -55,6 +58,13 @@ class rcmail
     public static function get_instance() { return self::$instance; }
     public function get_dbh() { return $this->db; }
     public function url($action, $absolute = false) { return '/?_task=mail&_action=' . $action; }
+    public function gettext($name, $domain = null)
+    {
+        $labels = [];
+        require dirname(__DIR__) . '/localization/uk_UA.inc';
+        return $labels[$name] ?? '[' . $name . ']';
+    }
+    public function load_language($lang = null, $add = [], $merge = []) { $this->texts = array_merge($this->texts, $merge); }
 }
 
 require dirname(__DIR__) . '/theme_customizer.php';
@@ -182,6 +192,15 @@ $guest_plugin = new theme_customizer();
 $guest_plugin->init();
 check($guest->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logoB.png', 'login page gets Textmediary logo');
 check(count($guest_plugin->buttons) === 0 && count($guest_plugin->actions) === 0, 'guest gets no appearance actions');
+
+$_SESSION['language'] = 'uk_UA';
+$uk = rcmail::$instance = new rcmail();
+$uk->config->data = ['skin' => 'elastic', 'theme_customizer_storage' => $base];
+$uk_plugin = new theme_customizer();
+$uk_plugin->init();
+check(($uk->texts['notsentwarning'] ?? null) === 'Лист ще не надіслано й містить незбережені зміни. Відкинути ці зміни?'
+    && in_array('notsentwarning', $uk->output->labels, true), 'Ukrainian unsaved-compose warning overrides English fallback in client labels');
+unset($_SESSION['language']);
 
 @unlink($base . '/u10/' . $id . '.jpg');
 @unlink($base . '/u10/' . $fresh . '.pending.jpg');

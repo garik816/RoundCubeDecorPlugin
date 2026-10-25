@@ -42,6 +42,11 @@ class theme_customizer extends rcube_plugin
         $this->register_action('plugin.theme_customizer.image', [$this, 'image']);
         $this->add_hook('preferences_update', [$this, 'fresh_preferences']);
         if (!$rc->output || $rc->output->type !== 'html') return;
+        if (($_SESSION['language'] ?? '') === 'uk_UA') {
+            $warning = $rc->gettext('core_notsentwarning', $this->ID);
+            $rc->load_language(null, [], ['notsentwarning' => $warning]);
+            $rc->output->add_label('notsentwarning');
+        }
         $this->include_stylesheet('styles/theme_customizer.css');
         $this->include_script('js/theme_customizer.js');
         $this->cleanup_expired_on_page();

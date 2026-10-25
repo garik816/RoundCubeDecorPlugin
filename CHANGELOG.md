@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 — 2026-10-25
+
+- Supplied the missing Ukrainian Roundcube warning for leaving a compose window with unsaved changes.
+- Registered the translated text for both server rendering and client-side confirmation dialogs without changing Roundcube core files.
+
 ## 0.7.0 — 2026-10-25
 
 - Added a per-user mail layout setting, defaulting to a wide message list with the folder menu beside it.
