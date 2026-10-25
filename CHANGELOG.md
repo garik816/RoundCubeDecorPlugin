@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-10-25
+
+- Fixed Compact rows being taller than Normal by removing added padding and tightening message line height.
+- Removed the 20 px blur from translucent workspace panels so personal wallpapers remain sharp.
+- Added a 100–180% wallpaper brightness control, and made the appearance drawer translucent.
+
 ## 0.7.1 — 2026-10-25
 
 - Supplied the missing Ukrainian Roundcube warning for leaving a compose window with unsaved changes.

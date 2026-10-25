@@ -88,7 +88,7 @@ class theme_customizer extends rcube_plugin
     {
         return ['v' => 1, 'rev' => '', 'preset' => 'neutral', 'background' => 'none', 'mode' => 'system',
             'accent' => '#3975c6', 'surface' => 94, 'radius' => 12, 'text' => 14,
-            'density' => 'normal', 'dim' => 0, 'blur' => 0, 'fit' => 'cover',
+            'density' => 'normal', 'dim' => 0, 'blur' => 0, 'brightness' => 100, 'fit' => 'cover',
             'position' => 'center', 'fill' => '#e8edf3',
             'messageMode' => 'theme', 'messageBackground' => 'none', 'messageFill' => '#f7f9fc',
             'messageSurface' => 94, 'messageFit' => 'cover', 'messagePosition' => 'center',
@@ -132,7 +132,7 @@ class theme_customizer extends rcube_plugin
             if (!is_string($x[$key]) || !preg_match('/^#[0-9a-fA-F]{6}$/D', $x[$key])) return false;
             $x[$key] = strtolower($x[$key]);
         }
-        foreach (['surface' => [10,100], 'messageSurface' => [10,100], 'radius' => [0,24], 'text' => [12,18], 'dim' => [0,60], 'blur' => [0,20]] as $key => $range) {
+        foreach (['surface' => [10,100], 'messageSurface' => [10,100], 'radius' => [0,24], 'text' => [12,18], 'dim' => [0,60], 'blur' => [0,20], 'brightness' => [100,180]] as $key => $range) {
             if (!is_int($x[$key]) || $x[$key] < $range[0] || $x[$key] > $range[1]) return false;
         }
         foreach (['background','messageBackground'] as $key) {

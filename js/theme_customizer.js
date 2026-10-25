@@ -182,6 +182,7 @@
         root.style.setProperty('--tc-fill', state.fill);
         root.style.setProperty('--tc-dim', String(state.dim / 100));
         root.style.setProperty('--tc-blur', state.blur + 'px');
+        root.style.setProperty('--tc-brightness', String(state.brightness / 100));
         root.style.setProperty('--tc-fit', state.fit);
         root.style.setProperty('--tc-position', state.position);
         root.style.setProperty('--tc-surface', String(state.surface / 100));
@@ -402,7 +403,8 @@
         backgrounds.append(colorField('fill', t('fill')),
             selectField('fit', t('fit'), [['cover',t('cover')],['contain',t('contain')]]),
             selectField('position', t('position'), ['center','top','bottom','left','right'].map(x => [x,t(x)])),
-            rangeField('dim', t('dim'), 0, 60, '%'), rangeField('blur', t('blur'), 0, 20, ' px'));
+            rangeField('dim', t('dim'), 0, 60, '%'), rangeField('blur', t('blur'), 0, 20, ' px'),
+            rangeField('brightness', t('brightness'), 100, 180, '%'));
         renderMessageControls();
         markChoices();
     }
@@ -485,7 +487,8 @@
         const footer = el('footer', 'tc-footer');
         footer.append(makeButton(t('reset'), 'tc-secondary', () => {
             draft = Object.assign({}, saved, { preset:'neutral', background:'none', mode:'system', accent:'#3975c6',
-                surface:94, radius:12, text:14, density:'normal', dim:0, blur:0, fit:'cover', position:'center', fill:'#e8edf3',
+                surface:94, radius:12, text:14, density:'normal', dim:0, blur:0, brightness:100,
+                fit:'cover', position:'center', fill:'#e8edf3',
                 messageMode:'theme', messageBackground:'none', messageFill:'#f7f9fc', messageSurface:94,
                 messageFit:'cover', messagePosition:'center', messageBodyMode:'original', messageBodyFill:'#26323d',
                 mailView:'single' });

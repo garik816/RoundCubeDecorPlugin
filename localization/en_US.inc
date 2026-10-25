@@ -13,6 +13,7 @@ $labels = [
     'fill' => 'Background color', 'fit' => 'Scale', 'cover' => 'Cover', 'contain' => 'Contain',
     'position' => 'Position', 'center' => 'Center', 'top' => 'Top', 'bottom' => 'Bottom',
     'left' => 'Left', 'right' => 'Right', 'dim' => 'Image dimming', 'blur' => 'Image blur',
+    'brightness' => 'Wallpaper brightness',
     'mode' => 'Mode', 'system' => 'System', 'light' => 'Light', 'dark' => 'Dark',
     'accent' => 'Accent color', 'surface' => 'Panel opacity',
     'mail_view' => 'Mail layout', 'mail_view_single' => 'List, then full message',

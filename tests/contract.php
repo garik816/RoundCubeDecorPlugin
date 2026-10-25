@@ -106,6 +106,15 @@ check(callPrivate($plugin, 'validate', $defaults) === $defaults, 'default settin
 check($defaults['messageMode'] === 'theme' && $defaults['messageSurface'] === 94, 'message area defaults to theme background');
 check($defaults['messageBodyMode'] === 'original', 'existing message bodies keep sender styling by default');
 check($defaults['mailView'] === 'single', 'mail defaults to list then full message');
+check($defaults['brightness'] === 100, 'existing wallpapers keep their brightness by default');
+foreach ([100, 180] as $brightness) {
+    $candidate = $defaults; $candidate['brightness'] = $brightness;
+    check(callPrivate($plugin, 'validate', $candidate) !== false, $brightness . '% wallpaper brightness accepted');
+}
+foreach ([99, 181] as $brightness) {
+    $candidate = $defaults; $candidate['brightness'] = $brightness;
+    check(callPrivate($plugin, 'validate', $candidate) === false, $brightness . '% wallpaper brightness rejected');
+}
 foreach (['single', 'split'] as $view) {
     $candidate = $defaults; $candidate['mailView'] = $view;
     check(callPrivate($plugin, 'validate', $candidate) !== false, $view . ' mail layout accepted');
@@ -170,12 +179,13 @@ check($safe['background'] === 'none' && $safe['messageBackground'] === 'none' &&
     'missing images fall back without breaking preferences');
 $legacy = $defaults; unset($legacy['messageMode'], $legacy['messageBackground'], $legacy['messageFill'],
     $legacy['messageSurface'], $legacy['messageFit'], $legacy['messagePosition'],
-    $legacy['messageBodyMode'], $legacy['messageBodyFill']);
+    $legacy['messageBodyMode'], $legacy['messageBodyFill'], $legacy['brightness']);
 $legacy['surface'] = 38;
 $rc->db->prefs[10]['theme_customizer'] = $legacy;
 $safe = callPrivate($plugin, 'settings');
 check($safe['messageMode'] === 'theme' && $safe['messageSurface'] === 38 && $safe['messageBodyMode'] === 'original',
     'existing settings migrate without recoloring message bodies');
+check($safe['brightness'] === 100, 'existing settings gain neutral wallpaper brightness');
 $saving = new ReflectionProperty($plugin, 'saving'); $saving->setValue($plugin, true);
 $hook = $plugin->fresh_preferences(['old' => ['stale' => true]]);
 check(isset($hook['old']['another_plugin']) && !isset($hook['old']['stale']), 'save merges fresh unrelated preferences');

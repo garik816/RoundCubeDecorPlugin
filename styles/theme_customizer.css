@@ -3,6 +3,7 @@ html.theme-customizer-enabled {
     --tc-wallpaper: none;
     --tc-dim: 0;
     --tc-blur: 0px;
+    --tc-brightness: 1;
     --tc-fit: cover;
     --tc-position: center;
     --tc-surface: .94;
@@ -43,7 +44,7 @@ html.theme-customizer-enabled body::before {
     background-size: cover, var(--tc-fit);
     background-position: center, var(--tc-position);
     background-repeat: no-repeat;
-    filter: blur(var(--tc-blur));
+    filter: blur(var(--tc-blur)) brightness(var(--tc-brightness));
     pointer-events: none;
 }
 
@@ -62,7 +63,7 @@ html.theme-customizer-enabled #layout-content {
     border-radius: var(--tc-radius);
     box-shadow: 0 8px 30px rgba(15,31,43,.18), 0 1px 3px rgba(15,31,43,.08);
     background-color: var(--tc-paper);
-    backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: none;
 }
 
 html.theme-customizer-enabled #layout-menu {
@@ -332,8 +333,22 @@ html.theme-customizer-enabled #layout .listing li.selected a::before {
 }
 
 html.theme-customizer-enabled[data-tc-density="compact"] .messagelist td {
-    padding-top: .25rem;
-    padding-bottom: .25rem;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+html.theme-customizer-enabled[data-tc-density="compact"] #layout-list .messagelist td.subject span {
+    line-height: 1.2rem;
+}
+
+html.theme-customizer-enabled[data-tc-density="compact"] #layout-list .messagelist td.subject span.msgicon.status::before {
+    height: 1.2rem;
+    line-height: 1.2rem;
+}
+
+html.theme-customizer-enabled[data-tc-density="compact"] #layout-list .messagelist td.flags > span {
+    height: 1.2rem;
+    line-height: 1.2rem;
 }
 
 html.theme-customizer-enabled[data-tc-density="spacious"] .messagelist td {
@@ -352,7 +367,7 @@ html.theme-customizer-enabled .tc-panel {
     flex-direction: column;
     overflow: hidden;
     color: #22313f;
-    background: #f5f7fa;
+    background: rgba(245,247,250,.86);
     border-left: 1px solid rgba(255,255,255,.35);
     box-shadow: -18px 0 55px rgba(10,22,35,.32);
     font: 14px/1.4 system-ui, sans-serif;
@@ -360,7 +375,7 @@ html.theme-customizer-enabled .tc-panel {
 
 html.theme-customizer-enabled.tc-dark .tc-panel {
     color: #e7eef2;
-    background: #19232d;
+    background: rgba(25,35,45,.86);
     border-color: #40515a;
 }
 
