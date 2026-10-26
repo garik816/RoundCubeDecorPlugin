@@ -1,5 +1,8 @@
 <?php
 $labels = [
+    'bulk_actions' => 'Selected message actions', 'bulk_selected' => 'Selected',
+    'bulk_markread' => 'Mark read', 'bulk_markunread' => 'Mark unread',
+    'bulk_moveto' => 'Move', 'bulk_delete' => 'Delete',
     'appearance' => 'Appearance',
     'preview' => 'Preview',
     'themes' => 'Themes', 'backgrounds' => 'Background', 'messages' => 'Messages', 'interface' => 'Interface',

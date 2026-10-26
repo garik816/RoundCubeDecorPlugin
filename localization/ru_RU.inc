@@ -1,5 +1,8 @@
 <?php
 $labels = [
+    'bulk_actions' => 'Действия с выбранными письмами', 'bulk_selected' => 'Выбрано',
+    'bulk_markread' => 'Прочитано', 'bulk_markunread' => 'Не прочитано',
+    'bulk_moveto' => 'Переместить', 'bulk_delete' => 'Удалить',
     'appearance' => 'Оформление',
     'preview' => 'Предпросмотр',
     'themes' => 'Темы', 'backgrounds' => 'Фон', 'messages' => 'Письма', 'interface' => 'Интерфейс',

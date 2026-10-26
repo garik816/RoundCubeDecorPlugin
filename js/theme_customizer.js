@@ -561,6 +561,50 @@
         if (opener && opener.isConnected) opener.focus();
     }
 
+    function mountMailSelection() {
+        if (rcmail.env.task !== 'mail' || rcmail.env.action || !rcmail.message_list) return;
+        const list = document.getElementById('messagelist');
+        const listPanel = document.getElementById('layout-list');
+        if (!list || !listPanel) return;
+
+        // Elastic already creates and maintains the real selection checkboxes.
+        // Keep its selection model so bulk commands, threads and page changes work.
+        list.classList.add('withselection');
+        const bar = el('div', 'tc-bulk-actions');
+        bar.setAttribute('role', 'toolbar');
+        bar.setAttribute('aria-label', t('bulk_actions'));
+        const count = el('span', 'tc-bulk-count');
+        count.setAttribute('aria-live', 'polite');
+        const buttons = [];
+        const actions = [
+            ['markread', 'mark', 'read'],
+            ['markunread', 'mark', 'unread'],
+            ['moveto', 'move', null],
+            ['delete', 'delete', null],
+        ];
+        for (const [label, command, prop] of actions) {
+            const button = el('button', 'tc-bulk-button tc-bulk-' + (prop || command), t('bulk_' + label));
+            button.type = 'button';
+            button.disabled = true;
+            button.addEventListener('click', event => {
+                if (button.disabled) return;
+                rcmail.command(command, prop === null ? undefined : prop, button, event);
+            });
+            buttons.push([button, command]);
+        }
+        bar.append(count, ...buttons.map(item => item[0]));
+        listPanel.insertBefore(bar, document.getElementById('messagelist-content'));
+
+        function update() {
+            const selected = rcmail.message_list.get_selection(false).length;
+            count.textContent = t('bulk_selected') + ': ' + selected;
+            for (const [button, command] of buttons) button.disabled = selected === 0 || !rcmail.commands[command];
+        }
+        rcmail.message_list.addEventListener('select', update);
+        rcmail.addEventListener('listupdate', update);
+        update();
+    }
+
     async function save() {
         if (busy) return;
         busy = true; setBusy(); message(t('saving'));
@@ -594,6 +638,7 @@
     apply(saved);
     rcmail.addEventListener('init', () => {
         rcmail.register_command('plugin.theme_customizer.open', open, true);
+        mountMailSelection();
         if (rcmail.env.task === 'mail' && document.getElementById('messagecontframe')) {
             const originalDoubleClick = rcmail.msglist_dbl_click;
             rcmail.msglist_dbl_click = function (list) {

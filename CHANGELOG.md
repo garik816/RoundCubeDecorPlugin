@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 — 2026-10-26
+
+- Made Roundcube's native selection checkboxes visible for every message in the mail list.
+- Added a selection action bar for marking messages read or unread, moving them, and deleting them without opening a message.
+- Kept the action buttons disabled until messages are selected, with English, Russian, and Ukrainian labels.
+
 ## 0.8.0 — 2026-10-25
 
 - Fixed Compact rows being taller than Normal by removing added padding and tightening message line height.
