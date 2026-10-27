@@ -48,11 +48,36 @@ html.theme-customizer-enabled body::before {
     pointer-events: none;
 }
 
+html.theme-customizer-enabled.tc-wallpaper-contain body::before {
+    inset: -40px;
+    background-image: var(--tc-wallpaper);
+    background-size: cover;
+    background-position: var(--tc-position);
+    filter: blur(28px) brightness(var(--tc-brightness));
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image: linear-gradient(rgba(0,0,0,var(--tc-dim)), rgba(0,0,0,var(--tc-dim))), var(--tc-wallpaper);
+    background-size: cover, contain;
+    background-position: center, var(--tc-position);
+    background-repeat: no-repeat;
+    filter: blur(var(--tc-blur)) brightness(var(--tc-brightness));
+    pointer-events: none;
+}
+
 html.theme-customizer-enabled #layout {
     position: relative;
     box-sizing: border-box;
     padding: 12px;
     gap: 10px;
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain #layout {
+    z-index: 1;
 }
 
 html.theme-customizer-enabled #layout-menu,
@@ -130,6 +155,48 @@ html.theme-customizer-enabled.tc-message-shell #layout-content {
 
 html.theme-customizer-enabled.tc-dark.tc-message-shell #layout-content {
     background-image: linear-gradient(rgba(29,38,49,var(--tc-message-surface)), rgba(29,38,49,var(--tc-message-surface))), var(--tc-message-wallpaper);
+}
+
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content {
+    position: relative;
+    background-image: none;
+}
+
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content::before,
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content::before {
+    inset: -40px;
+    background-image: var(--tc-message-wallpaper);
+    background-size: cover;
+    background-position: var(--tc-message-position);
+    background-repeat: no-repeat;
+    filter: blur(28px);
+}
+
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content::after {
+    inset: 0;
+    background-image: linear-gradient(rgba(250,252,255,var(--tc-message-surface)), rgba(250,252,255,var(--tc-message-surface))), var(--tc-message-wallpaper);
+    background-size: cover, contain;
+    background-position: center, var(--tc-message-position);
+    background-repeat: no-repeat;
+}
+
+html.theme-customizer-enabled.tc-dark.tc-message-shell.tc-message-contain #layout-content::after {
+    background-image: linear-gradient(rgba(29,38,49,var(--tc-message-surface)), rgba(29,38,49,var(--tc-message-surface))), var(--tc-message-wallpaper);
+}
+
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content > .header,
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content > .iframe-wrapper,
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content > .content,
+html.theme-customizer-enabled.tc-message-shell.tc-message-contain #layout-content > .scroller {
+    position: relative;
+    z-index: 1;
 }
 
 html.theme-customizer-enabled.tc-message-shell #layout-content > .content.frame-content {
@@ -365,13 +432,28 @@ html.theme-customizer-enabled .tc-bulk-count {
 }
 
 html.theme-customizer-enabled .tc-bulk-button {
-    flex: none;
-    padding: .3rem .65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 2.4rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
     border: 1px solid var(--tc-edge);
     border-radius: 7px;
     background: var(--tc-paper);
     color: var(--tc-ink);
     cursor: pointer;
+}
+
+html.theme-customizer-enabled .tc-bulk-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 html.theme-customizer-enabled .tc-bulk-button:disabled {
@@ -464,6 +546,40 @@ html.theme-customizer-enabled .tc-header {
     background-image: linear-gradient(115deg, rgba(12,23,35,.78), rgba(12,23,35,.2)), var(--tc-wallpaper);
     background-size: cover, cover;
     background-position: center, var(--tc-position);
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-image: none;
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header::before,
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header::before {
+    inset: -24px;
+    background: var(--tc-wallpaper) var(--tc-position) / cover no-repeat;
+    filter: blur(16px);
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header::after {
+    inset: 0;
+    background-image: linear-gradient(115deg, rgba(12,23,35,.78), rgba(12,23,35,.2)), var(--tc-wallpaper);
+    background-size: cover, contain;
+    background-position: center, var(--tc-position);
+    background-repeat: no-repeat;
+}
+
+html.theme-customizer-enabled.tc-wallpaper-contain .tc-header > * {
+    position: relative;
+    z-index: 1;
 }
 
 html.theme-customizer-enabled .tc-heading {

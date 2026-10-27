@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 — 2026-10-27
+
+- Replaced the four bulk-action text buttons with compact icons and accessible localized tooltips.
+- Filled unused space around Contain wallpapers with a blurred cover layer while keeping the full image sharp.
+- Applied the same Contain treatment to independent message-reading backgrounds and the appearance preview.
+
 ## 0.9.0 — 2026-10-26
 
 - Made Roundcube's native selection checkboxes visible for every message in the mail list.

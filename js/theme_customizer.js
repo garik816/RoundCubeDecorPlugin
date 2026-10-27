@@ -166,6 +166,7 @@
         const dark = state.mode === 'dark' || (state.mode === 'system' && media.matches);
         const messageLook = messageAppearance(state);
         const bodyLook = bodyAppearance(state, dark);
+        const wallpaper = backgroundUrl(state.background);
         root.classList.add('theme-customizer-enabled');
         root.classList.toggle('dark-mode', dark);
         root.classList.toggle('tc-dark', dark);
@@ -173,12 +174,14 @@
         root.classList.toggle('tc-message-low', state.messageSurface < 70);
         root.classList.toggle('tc-body-restyled', bodyLook.active);
         root.classList.toggle('tc-message-shell', !!(document.getElementById('messagecontframe') || document.getElementById('message-header')));
+        root.classList.toggle('tc-wallpaper-contain', !!wallpaper && state.fit === 'contain');
+        root.classList.toggle('tc-message-contain', !!messageLook.url && messageLook.fit === 'contain');
         root.classList.toggle('tc-mail-single', state.mailView === 'single' && rcmail.env.task === 'mail'
             && !rcmail.env.action && !!document.getElementById('messagecontframe'));
         if (!root.classList.contains('tc-mail-single')) root.classList.remove('tc-mail-reader');
         syncMessageFrame(dark, state.messageSurface < 70, bodyLook);
         syncComposeEditor(bodyLook);
-        root.style.setProperty('--tc-wallpaper', backgroundUrl(state.background) ? 'url(' + JSON.stringify(backgroundUrl(state.background)) + ')' : 'none');
+        root.style.setProperty('--tc-wallpaper', wallpaper ? 'url(' + JSON.stringify(wallpaper) + ')' : 'none');
         root.style.setProperty('--tc-fill', state.fill);
         root.style.setProperty('--tc-dim', String(state.dim / 100));
         root.style.setProperty('--tc-blur', state.blur + 'px');
@@ -260,7 +263,7 @@
         return wrap;
     }
 
-    function selectField(key, label, options) {
+    function selectField(key, label, options, help) {
         const select = el('select', 'tc-input');
         options.forEach(([value, text]) => {
             const option = el('option', '', text);
@@ -269,7 +272,7 @@
         });
         select.value = draft[key];
         select.addEventListener('change', () => change(key, select.value));
-        return field(label, select);
+        return field(label, select, help);
     }
 
     function rangeField(key, label, min, max, unit) {
@@ -401,7 +404,7 @@
         backgrounds.append(grid);
         backgrounds.append(uploadField('background', t('upload_image')));
         backgrounds.append(colorField('fill', t('fill')),
-            selectField('fit', t('fit'), [['cover',t('cover')],['contain',t('contain')]]),
+            selectField('fit', t('fit'), [['cover',t('cover')],['contain',t('contain')]], t('contain_blur_help')),
             selectField('position', t('position'), ['center','top','bottom','left','right'].map(x => [x,t(x)])),
             rangeField('dim', t('dim'), 0, 60, '%'), rangeField('blur', t('blur'), 0, 20, ' px'),
             rangeField('brightness', t('brightness'), 100, 180, '%'));
@@ -435,7 +438,7 @@
             });
             section.append(grid, uploadField('messageBackground', t('message_upload')),
                 colorField('messageFill', t('message_fill')),
-                selectField('messageFit', t('fit'), [['cover',t('cover')],['contain',t('contain')]]),
+                selectField('messageFit', t('fit'), [['cover',t('cover')],['contain',t('contain')]], t('contain_blur_help')),
                 selectField('messagePosition', t('position'), ['center','top','bottom','left','right'].map(x => [x,t(x)])));
         } else {
             section.append(el('p', 'tc-help', t('message_theme_help')));
@@ -576,6 +579,12 @@
         const count = el('span', 'tc-bulk-count');
         count.setAttribute('aria-live', 'polite');
         const buttons = [];
+        const iconPaths = {
+            markread: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
+            markunread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
+            moveto: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8m-3-3 3 3-3 3'],
+            delete: ['M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v6m4-6v6'],
+        };
         const actions = [
             ['markread', 'mark', 'read'],
             ['markunread', 'mark', 'unread'],
@@ -583,8 +592,19 @@
             ['delete', 'delete', null],
         ];
         for (const [label, command, prop] of actions) {
-            const button = el('button', 'tc-bulk-button tc-bulk-' + (prop || command), t('bulk_' + label));
+            const button = el('button', 'tc-bulk-button tc-bulk-' + (prop || command));
             button.type = 'button';
+            button.title = t('bulk_' + label);
+            button.setAttribute('aria-label', button.title);
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.setAttribute('viewBox', '0 0 24 24');
+            icon.setAttribute('aria-hidden', 'true');
+            for (const d of iconPaths[label]) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', d);
+                icon.append(path);
+            }
+            button.append(icon);
             button.disabled = true;
             button.addEventListener('click', event => {
                 if (button.disabled) return;

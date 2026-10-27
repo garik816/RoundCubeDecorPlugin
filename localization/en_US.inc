@@ -14,6 +14,7 @@ $labels = [
     'personalimage' => 'Personal image', 'remove' => 'Remove', 'upload_image' => 'Upload image',
     'upload_help' => 'JPEG and PNG; WebP when supported. Up to 10 MiB and 24 MP.',
     'fill' => 'Background color', 'fit' => 'Scale', 'cover' => 'Cover', 'contain' => 'Contain',
+    'contain_blur_help' => 'Contain fills the unused space with a blurred copy of the image.',
     'position' => 'Position', 'center' => 'Center', 'top' => 'Top', 'bottom' => 'Bottom',
     'left' => 'Left', 'right' => 'Right', 'dim' => 'Image dimming', 'blur' => 'Image blur',
     'brightness' => 'Wallpaper brightness',
