@@ -8,6 +8,7 @@ $labels = [
     'row_delete' => 'Удалить письмо', 'row_undelete' => 'Восстановить письмо',
     'row_read' => 'Отметить прочитанным', 'row_unread' => 'Отметить непрочитанным',
     'row_preview' => 'Текст письма', 'row_preview_empty' => 'Текст письма недоступен',
+    'context_actions' => 'Действия с письмом',
     'appearance' => 'Оформление',
     'preview' => 'Предпросмотр',
     'themes' => 'Темы', 'backgrounds' => 'Фон', 'messages' => 'Письма', 'interface' => 'Интерфейс',

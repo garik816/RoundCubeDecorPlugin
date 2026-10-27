@@ -462,22 +462,22 @@ html.theme-customizer-enabled.tc-mail-list-ui #messagelist-content .listing-hove
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-    width: 11.8rem;
-    min-width: 11.8rem;
-    padding: .15rem .25rem;
+    width: 8.35rem;
+    min-width: 8.35rem;
+    padding: .1rem .18rem;
     white-space: nowrap;
     vertical-align: middle;
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection > input {
-    margin: 0 .28rem 0 .1rem;
+    margin: 0 .17rem 0 .06rem;
     vertical-align: middle;
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui .tc-row-actions {
     display: inline-flex;
     align-items: center;
-    gap: .1rem;
+    gap: 0;
     vertical-align: middle;
 }
 
@@ -485,9 +485,9 @@ html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    width: 2.05rem;
-    height: 2.05rem;
-    padding: .3rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: .18rem;
     border: 0;
     border-radius: 6px;
     color: var(--tc-ink);
@@ -497,13 +497,25 @@ html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action {
 
 html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action svg,
 html.theme-customizer-enabled.tc-mail-list-ui .tc-row-attachment svg {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1rem;
+    height: 1rem;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action svg {
+    flex: 0 0 1rem;
+    stroke: currentColor !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+html.theme-customizer-enabled.tc-mail-list-ui .tc-row-read[data-tc-state="read"] .tc-envelope-unread,
+html.theme-customizer-enabled.tc-mail-list-ui .tc-row-read[data-tc-state="unread"] .tc-envelope-read {
+    display: none;
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action:hover,
@@ -529,6 +541,11 @@ html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.selected .tc-row-a
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.selected .tc-row-first > .fromto,
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.selected .tc-row-trailing > .date {
     color: var(--tc-accent-text);
+}
+
+html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.selected .tc-row-action.tc-active {
+    color: var(--tc-accent) !important;
+    background: var(--tc-accent-text);
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.subject {
@@ -631,24 +648,94 @@ html.theme-customizer-enabled .tc-mail-tooltip {
     max-height: 280px;
     overflow: hidden;
     padding: .7rem .85rem;
-    border: 1px solid var(--tc-edge);
+    border: 1px solid #c4ccd6;
     border-radius: 9px;
-    background: var(--tc-paper);
-    color: var(--tc-ink);
-    box-shadow: 0 8px 30px rgba(0,0,0,.28);
+    background: #fff;
+    color: #1d2732;
+    box-shadow: 0 10px 30px rgba(0,0,0,.32);
+    opacity: 1;
+    backdrop-filter: none;
     pointer-events: none;
     white-space: pre-wrap;
     line-height: 1.4;
 }
 
+html.theme-customizer-enabled.tc-dark .tc-mail-tooltip {
+    background: #17212c;
+    color: #f4f7fa;
+    border-color: #526170;
+}
+
 html.theme-customizer-enabled .tc-mail-tooltip[hidden] { display: none; }
+
+html.theme-customizer-enabled .tc-mail-context-menu {
+    position: fixed;
+    z-index: 10020;
+    display: flex;
+    flex-direction: column;
+    width: min(240px, calc(100vw - 16px));
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    padding: .3rem;
+    border: 1px solid #c4ccd6;
+    border-radius: 10px;
+    background: #fff;
+    color: #1d2732;
+    box-shadow: 0 10px 35px rgba(0,0,0,.32);
+    opacity: 1;
+}
+
+html.theme-customizer-enabled.tc-dark .tc-mail-context-menu {
+    background: #17212c;
+    color: #f4f7fa;
+    border-color: #526170;
+}
+
+html.theme-customizer-enabled .tc-mail-context-menu[hidden] { display: none; }
+
+html.theme-customizer-enabled .tc-mail-context-action {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    width: 100%;
+    min-height: 2.2rem;
+    padding: .3rem .55rem;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+html.theme-customizer-enabled .tc-mail-context-action svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+html.theme-customizer-enabled .tc-mail-context-action:hover,
+html.theme-customizer-enabled .tc-mail-context-action:focus-visible {
+    background: var(--tc-accent);
+    color: var(--tc-accent-text);
+    outline: none;
+}
+
+html.theme-customizer-enabled .tc-mail-context-action:disabled {
+    opacity: .45;
+    cursor: default;
+}
 
 @media (max-width: 760px) {
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-        width: 10.7rem;
-        min-width: 10.7rem;
+        width: 8.15rem;
+        min-width: 8.15rem;
     }
-    html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action { width: 1.8rem; }
+    html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action { width: 1.5rem; height: 1.5rem; }
     html.theme-customizer-enabled.tc-mail-list-ui .tc-row-trailing { min-width: 4rem; }
     html.theme-customizer-enabled.tc-mail-list-ui .tc-row-first { gap: .35rem; }
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist .tc-row-first > .fromto { flex-basis: 40%; }
@@ -656,8 +743,8 @@ html.theme-customizer-enabled .tc-mail-tooltip[hidden] { display: none; }
 
 @media (max-width: 600px) {
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-        width: 10.1rem;
-        min-width: 10.1rem;
+        width: 7.8rem;
+        min-width: 7.8rem;
     }
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.subject {
         grid-template-rows: auto auto;

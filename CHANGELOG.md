@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0 — 2026-10-27
+
+- Tightened and reduced the per-message buttons, moved the read indicator beside Pin, and kept icons visible when their state changes. Active icons use the configured accent color.
+- Added an accessible message context menu via the More button, right click, or keyboard. Delete and Move are available there and Delete is no longer inline.
+- Made the message-text tooltip opaque in both light and dark themes.
+
 ## 0.11.0 — 2026-10-27
 
 - Made the blurred Contain filler visible behind very dark personal wallpapers without changing the sharp centered image.

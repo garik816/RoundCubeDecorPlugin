@@ -8,6 +8,7 @@ $labels = [
     'row_delete' => 'Delete message', 'row_undelete' => 'Restore message',
     'row_read' => 'Mark read', 'row_unread' => 'Mark unread',
     'row_preview' => 'Message text', 'row_preview_empty' => 'Message text unavailable',
+    'context_actions' => 'Message actions',
     'appearance' => 'Appearance',
     'preview' => 'Preview',
     'themes' => 'Themes', 'backgrounds' => 'Background', 'messages' => 'Messages', 'interface' => 'Interface',

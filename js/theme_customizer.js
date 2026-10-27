@@ -651,6 +651,8 @@
             trash: ['M4 7h16', 'M9 7V4h6v3', 'm6 7 1 13h10l1-13', 'M10 11v6', 'M14 11v6'],
             unread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
             read: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
+            move: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8', 'm15 11 3 3-3 3'],
+            more: ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
             attachment: ['M20 12.5 11 21a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.3-8.3'],
         };
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -660,6 +662,19 @@
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', d);
             svg.append(path);
+        }
+        return svg;
+    }
+
+    function envelopeIcon() {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        for (const name of ['unread', 'read']) {
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.classList.add('tc-envelope-' + name);
+            for (const path of mailIcon(name).querySelectorAll('path')) group.append(path.cloneNode());
+            svg.append(group);
         }
         return svg;
     }
@@ -695,9 +710,8 @@
         if (!actions) return;
         const state = [
             ['pin', pinned ? 'bulk_unpin' : 'bulk_pin', pinned],
+            ['read', record.unread ? 'row_read' : 'row_unread', !!record.unread],
             ['flag', record.flagged ? 'row_unflag' : 'row_flag', !!record.flagged],
-            ['trash', record.deleted ? 'row_undelete' : 'row_delete', !!record.deleted],
-            ['read', record.unread ? 'row_read' : 'row_unread', !record.unread],
         ];
         for (const [name, label, active] of state) {
             const button = actions.querySelector('[data-tc-action="' + name + '"]');
@@ -705,7 +719,7 @@
             button.title = t(label);
             button.setAttribute('aria-label', button.title);
             button.classList.toggle('tc-active', !!active);
-            if (name === 'read') button.replaceChildren(mailIcon(record.unread ? 'unread' : 'read'));
+            if (name === 'read') button.dataset.tcState = record.unread ? 'unread' : 'read';
         }
     }
 
@@ -714,16 +728,20 @@
         const tooltip = el('div', 'tc-mail-tooltip');
         tooltip.hidden = true;
         tooltip.setAttribute('role', 'tooltip');
-        document.body.append(tooltip);
+        const menu = el('div', 'tc-mail-context-menu');
+        menu.hidden = true;
+        menu.setAttribute('role', 'menu');
+        menu.setAttribute('aria-label', t('context_actions'));
+        document.body.append(tooltip, menu);
         const snippets = new Map(), pendingSnippets = new Map(), loadingSnippets = new Set();
-        let timer, hoverTimer, hovered;
+        let timer, hoverTimer, hovered, menuRow;
         const keyFor = row => (rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox) + '\0' + mailUid(row.uid);
         const observer = window.IntersectionObserver ? new IntersectionObserver(entries => {
             entries.forEach(entry => { if (entry.isIntersecting) queueSnippet(entry.target); });
         }, { root: wrapper, rootMargin: '250px' }) : null;
 
         function showTooltip(row) {
-            if (hovered !== row) return;
+            if (hovered !== row || !menu.hidden) return;
             const text = snippets.get(keyFor(row));
             if (!text) return;
             tooltip.textContent = text;
@@ -768,6 +786,78 @@
             }
         }
 
+        function closeMenu() {
+            menu.hidden = true;
+            menuRow?.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'false');
+            menuRow = null;
+        }
+
+        async function runRowAction(name, row, event) {
+            const record = rcmail.message_list.rows[row.uid];
+            if (!record) return;
+            const mbox = rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox;
+            if (name === 'pin') {
+                try { await setPins(mbox, [mailUid(row.uid)], !row.classList.contains('tc-pinned')); }
+                catch (error) { rcmail.display_message(errorText(error), 'error'); }
+            } else if (name === 'flag') rcmail.mark_message(record.flagged ? 'unflagged' : 'flagged', row.uid);
+            else if (name === 'read') rcmail.mark_message(record.unread ? 'read' : 'unread', row.uid);
+            else if (name === 'delete') {
+                if (record.deleted) rcmail.mark_message('undelete', row.uid);
+                else rcmail.delete_messages(event, row.uid);
+            } else if (name === 'move') {
+                rcmail.folder_selector(event, (folder, button) => {
+                    rcmail.command('move', { id: folder, uids: [row.uid] }, button, event, true);
+                });
+            }
+            setTimeout(() => syncMailRow(row), 100);
+        }
+
+        function openMenu(event, row) {
+            event.preventDefault();
+            event.stopPropagation();
+            const record = rcmail.message_list.rows[row.uid];
+            if (!record) return;
+            clearTimeout(hoverTimer);
+            tooltip.hidden = true;
+            hovered = null;
+            menuRow?.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'false');
+            menuRow = row;
+            row.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'true');
+            menu.replaceChildren();
+            const options = [
+                ['pin', 'pin', row.classList.contains('tc-pinned') ? 'bulk_unpin' : 'bulk_pin'],
+                ['read', record.unread ? 'read' : 'unread', record.unread ? 'row_read' : 'row_unread'],
+                ['flag', 'flag', record.flagged ? 'row_unflag' : 'row_flag'],
+                ['move', 'move', 'bulk_moveto'],
+                ['delete', 'trash', record.deleted ? 'row_undelete' : 'row_delete'],
+            ];
+            for (const [action, iconName, label] of options) {
+                const button = el('button', 'tc-mail-context-action');
+                button.type = 'button';
+                button.setAttribute('role', 'menuitem');
+                button.dataset.tcAction = action;
+                button.append(mailIcon(iconName), el('span', '', t(label)));
+                button.addEventListener('click', click => {
+                    click.stopPropagation();
+                    if (action === 'move') {
+                        runRowAction(action, row, click);
+                        closeMenu();
+                    } else {
+                        closeMenu();
+                        runRowAction(action, row, click);
+                    }
+                });
+                menu.append(button);
+            }
+            menu.hidden = false;
+            const rect = row.getBoundingClientRect();
+            const x = event.clientX > 0 ? event.clientX : rect.left + 12;
+            const y = event.clientY > 0 ? event.clientY : rect.bottom;
+            menu.style.left = Math.max(8, Math.min(x, innerWidth - menu.offsetWidth - 8)) + 'px';
+            menu.style.top = Math.max(8, Math.min(y, innerHeight - menu.offsetHeight - 8)) + 'px';
+            menu.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+        }
+
         function decorate(row) {
             if (!row || row.classList.contains('tc-mail-row')) return;
             const selection = row.querySelector('td.selection');
@@ -775,29 +865,26 @@
             if (!selection || !subject) return;
             row.classList.add('tc-mail-row');
             const controls = el('span', 'tc-row-actions');
-            for (const name of ['pin', 'flag', 'trash', 'read']) {
+            for (const name of ['pin', 'read', 'flag', 'more']) {
                 const button = el('button', 'tc-row-action tc-row-' + name);
                 button.type = 'button'; button.dataset.tcAction = name;
-                button.append(mailIcon(name === 'trash' ? 'trash' : name === 'read' ? 'unread' : name));
+                button.append(name === 'read' ? envelopeIcon() : mailIcon(name));
+                if (name === 'more') {
+                    button.title = t('context_actions');
+                    button.setAttribute('aria-label', button.title);
+                    button.setAttribute('aria-haspopup', 'menu');
+                    button.setAttribute('aria-expanded', 'false');
+                }
                 for (const type of ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) {
                     button.addEventListener(type, event => { event.stopPropagation(); if (type === 'mousedown') event.preventDefault(); });
                 }
                 button.addEventListener('click', async event => {
-                    const record = rcmail.message_list.rows[row.uid];
-                    if (!record) return;
-                    const mbox = rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox;
-                    if (name === 'pin') {
-                        button.disabled = true;
-                        try { await setPins(mbox, [mailUid(row.uid)], !row.classList.contains('tc-pinned')); }
-                        catch (error) { rcmail.display_message(errorText(error), 'error'); }
+                    if (name === 'more') openMenu(event, row);
+                    else {
+                        if (name === 'pin') button.disabled = true;
+                        try { await runRowAction(name, row, event); }
                         finally { button.disabled = false; }
-                    } else if (name === 'flag') rcmail.mark_message(record.flagged ? 'unflagged' : 'flagged', row.uid);
-                    else if (name === 'trash') {
-                        if (record.deleted) rcmail.mark_message('undelete', row.uid);
-                        else rcmail.delete_messages(event, row.uid);
                     }
-                    else rcmail.mark_message(record.unread ? 'read' : 'unread', row.uid);
-                    setTimeout(() => syncMailRow(row), 100);
                 });
                 controls.append(button);
             }
@@ -838,10 +925,12 @@
                 if (hovered === row) hovered = null;
                 clearTimeout(hoverTimer); tooltip.hidden = true;
             });
+            row.addEventListener('contextmenu', event => openMenu(event, row));
         }
 
         rcmail.message_list.addEventListener('initrow', record => decorate(record.obj));
         rcmail.addEventListener('listupdate', () => {
+            closeMenu();
             list.querySelectorAll('tbody tr.message').forEach(decorate);
             list.querySelectorAll('tbody tr.message').forEach(syncMailRow);
             sortPinnedRows();
@@ -852,6 +941,30 @@
             for (const record of records) if (record.type === 'attributes' && record.target.classList.contains('tc-mail-row')) syncMailRow(record.target);
         });
         changes.observe(list.tBodies[0], { subtree: true, attributes: true, attributeFilter: ['class'] });
+        document.addEventListener('pointerdown', event => {
+            if (!menu.hidden && !menu.contains(event.target)) closeMenu();
+        }, true);
+        document.addEventListener('keydown', event => {
+            if (menu.hidden) {
+                if ((event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))
+                    && document.activeElement?.closest('#messagelist tr.message')) {
+                    openMenu(event, document.activeElement.closest('#messagelist tr.message'));
+                }
+                return;
+            }
+            if (event.key === 'Escape' || event.key === 'Tab') {
+                closeMenu();
+                return;
+            }
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                const choices = Array.from(menu.querySelectorAll('button:not(:disabled)'));
+                const index = choices.indexOf(document.activeElement);
+                choices[(index + (event.key === 'ArrowDown' ? 1 : choices.length - 1)) % choices.length]?.focus();
+            }
+        }, true);
+        wrapper?.addEventListener('scroll', closeMenu, { passive: true });
+        window.addEventListener('resize', closeMenu);
     }
 
     async function save() {
