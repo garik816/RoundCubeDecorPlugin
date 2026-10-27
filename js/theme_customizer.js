@@ -15,6 +15,7 @@
     let removed = new Set();
     let tab = randomId();
     let panel, opener, busy = false, opened = false, heartbeat = null, recipientPreview = false;
+    let pins = clone(env.pins || {});
     const modalInert = new Map();
 
     function randomId() {
@@ -186,6 +187,8 @@
         root.style.setProperty('--tc-dim', String(state.dim / 100));
         root.style.setProperty('--tc-blur', state.blur + 'px');
         root.style.setProperty('--tc-brightness', String(state.brightness / 100));
+        root.style.setProperty('--tc-backdrop-brightness', String(Math.min(2.8,
+            Math.max(1.25, state.brightness / 100 * (dark ? 1.8 : 1.15)))));
         root.style.setProperty('--tc-fit', state.fit);
         root.style.setProperty('--tc-position', state.position);
         root.style.setProperty('--tc-surface', String(state.surface / 100));
@@ -569,6 +572,7 @@
         const list = document.getElementById('messagelist');
         const listPanel = document.getElementById('layout-list');
         if (!list || !listPanel) return;
+        root.classList.add('tc-mail-list-ui');
 
         // Elastic already creates and maintains the real selection checkboxes.
         // Keep its selection model so bulk commands, threads and page changes work.
@@ -580,12 +584,14 @@
         count.setAttribute('aria-live', 'polite');
         const buttons = [];
         const iconPaths = {
+            pin: ['M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z', 'M12 14v7'],
             markread: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
             markunread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
             moveto: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8m-3-3 3 3-3 3'],
             delete: ['M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v6m4-6v6'],
         };
         const actions = [
+            ['pin', 'pin', null],
             ['markread', 'mark', 'read'],
             ['markunread', 'mark', 'unread'],
             ['moveto', 'move', null],
@@ -605,10 +611,22 @@
                 icon.append(path);
             }
             button.append(icon);
+            button.append(el('span', 'tc-bulk-label', t('bulk_' + label)));
             button.disabled = true;
-            button.addEventListener('click', event => {
+            button.addEventListener('click', async event => {
                 if (button.disabled) return;
-                rcmail.command(command, prop === null ? undefined : prop, button, event);
+                if (command === 'pin') {
+                    const groups = new Map();
+                    for (const uid of rcmail.message_list.get_selection(false)) {
+                        const mbox = rcmail.env.messages?.[uid]?.mbox || rcmail.env.mailbox;
+                        if (!groups.has(mbox)) groups.set(mbox, []);
+                        groups.get(mbox).push(mailUid(uid));
+                    }
+                    button.disabled = true;
+                    try { for (const [mbox, uids] of groups) await setPins(mbox, uids, true); }
+                    catch (error) { rcmail.display_message(errorText(error), 'error'); }
+                    update();
+                } else rcmail.command(command, prop === null ? undefined : prop, button, event);
             });
             buttons.push([button, command]);
         }
@@ -618,11 +636,222 @@
         function update() {
             const selected = rcmail.message_list.get_selection(false).length;
             count.textContent = t('bulk_selected') + ': ' + selected;
-            for (const [button, command] of buttons) button.disabled = selected === 0 || !rcmail.commands[command];
+            for (const [button, command] of buttons) button.disabled = selected === 0 || (command !== 'pin' && !rcmail.commands[command]);
         }
         rcmail.message_list.addEventListener('select', update);
         rcmail.addEventListener('listupdate', update);
+        mountMailRows(list);
         update();
+    }
+
+    function mailIcon(name) {
+        const paths = {
+            pin: ['M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z', 'M12 14v7'],
+            flag: ['M5 21V4', 'M5 5c5-4 9 4 14 0v11c-5 4-9-4-14 0'],
+            trash: ['M4 7h16', 'M9 7V4h6v3', 'm6 7 1 13h10l1-13', 'M10 11v6', 'M14 11v6'],
+            unread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
+            read: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
+            attachment: ['M20 12.5 11 21a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.3-8.3'],
+        };
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        for (const d of paths[name]) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', d);
+            svg.append(path);
+        }
+        return svg;
+    }
+
+    function mailUid(uid) {
+        return String(uid).match(/^([1-9][0-9]{0,19})(?:\.[0-9.]+)?(?:-.+)?$/)?.[1] || String(uid);
+    }
+
+    async function setPins(mbox, uids, pinned) {
+        const result = await request('pin', { _mbox: mbox, _uids: JSON.stringify(uids), _pinned: pinned ? '1' : '0' });
+        pins = result.pins || {};
+        document.querySelectorAll('#messagelist tbody tr.message').forEach(syncMailRow);
+        sortPinnedRows();
+    }
+
+    function sortPinnedRows() {
+        if (rcmail.env.threading === true || rcmail.env.threading === 1 || rcmail.env.threading === '1') return;
+        const tbody = document.querySelector('#messagelist tbody');
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll(':scope > tr.message'));
+        const first = rows.find(row => !row.classList.contains('tc-pinned'));
+        for (const row of rows) if (row.classList.contains('tc-pinned')) tbody.insertBefore(row, first || null);
+    }
+
+    function syncMailRow(row) {
+        if (!row || !row.uid) return;
+        const record = rcmail.message_list.rows[row.uid];
+        if (!record) return;
+        const mbox = rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox;
+        const pinned = !!Object.prototype.hasOwnProperty.call(pins[mbox] || {}, mailUid(row.uid));
+        row.classList.toggle('tc-pinned', pinned);
+        const actions = row.querySelector('.tc-row-actions');
+        if (!actions) return;
+        const state = [
+            ['pin', pinned ? 'bulk_unpin' : 'bulk_pin', pinned],
+            ['flag', record.flagged ? 'row_unflag' : 'row_flag', !!record.flagged],
+            ['trash', record.deleted ? 'row_undelete' : 'row_delete', !!record.deleted],
+            ['read', record.unread ? 'row_read' : 'row_unread', !record.unread],
+        ];
+        for (const [name, label, active] of state) {
+            const button = actions.querySelector('[data-tc-action="' + name + '"]');
+            if (!button) continue;
+            button.title = t(label);
+            button.setAttribute('aria-label', button.title);
+            button.classList.toggle('tc-active', !!active);
+            if (name === 'read') button.replaceChildren(mailIcon(record.unread ? 'unread' : 'read'));
+        }
+    }
+
+    function mountMailRows(list) {
+        const wrapper = document.getElementById('messagelist-content');
+        const tooltip = el('div', 'tc-mail-tooltip');
+        tooltip.hidden = true;
+        tooltip.setAttribute('role', 'tooltip');
+        document.body.append(tooltip);
+        const snippets = new Map(), pendingSnippets = new Map(), loadingSnippets = new Set();
+        let timer, hoverTimer, hovered;
+        const keyFor = row => (rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox) + '\0' + mailUid(row.uid);
+        const observer = window.IntersectionObserver ? new IntersectionObserver(entries => {
+            entries.forEach(entry => { if (entry.isIntersecting) queueSnippet(entry.target); });
+        }, { root: wrapper, rootMargin: '250px' }) : null;
+
+        function showTooltip(row) {
+            if (hovered !== row) return;
+            const text = snippets.get(keyFor(row));
+            if (!text) return;
+            tooltip.textContent = text;
+            tooltip.hidden = false;
+            const rect = row.getBoundingClientRect();
+            tooltip.style.left = Math.max(8, Math.min(rect.left + 170, innerWidth - 520)) + 'px';
+            tooltip.style.top = Math.min(rect.bottom + 6, innerHeight - Math.min(tooltip.offsetHeight, 280) - 8) + 'px';
+        }
+
+        function queueSnippet(row) {
+            if (!row?.uid) return;
+            const key = keyFor(row);
+            if (snippets.has(key) || pendingSnippets.has(key) || loadingSnippets.has(key)) return;
+            pendingSnippets.set(key, row);
+            clearTimeout(timer);
+            timer = setTimeout(loadSnippets, 80);
+        }
+
+        async function loadSnippets() {
+            const groups = new Map();
+            for (const [key, row] of pendingSnippets) {
+                const mbox = rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox;
+                if (!groups.has(mbox)) groups.set(mbox, []);
+                groups.get(mbox).push([key, row]);
+                pendingSnippets.delete(key);
+            }
+            for (const [mbox, rows] of groups) {
+                for (let i = 0; i < rows.length; i += 12) {
+                    const batch = rows.slice(i, i + 12);
+                    batch.forEach(([key]) => loadingSnippets.add(key));
+                    try {
+                        const result = await request('snippets', { _mbox: mbox, _uids: JSON.stringify(batch.map(([, row]) => mailUid(row.uid))) });
+                        for (const [key, row] of batch) {
+                            const text = result.snippets?.[mailUid(row.uid)] || '';
+                            snippets.set(key, text);
+                            row.querySelector('.tc-row-snippet')?.replaceChildren(document.createTextNode(text || t('row_preview_empty')));
+                            if (hovered === row) showTooltip(row);
+                        }
+                    } catch (_) { /* A later list update or hover can retry. */ }
+                    finally { batch.forEach(([key]) => loadingSnippets.delete(key)); }
+                }
+            }
+        }
+
+        function decorate(row) {
+            if (!row || row.classList.contains('tc-mail-row')) return;
+            const selection = row.querySelector('td.selection');
+            const subject = row.querySelector('td.subject');
+            if (!selection || !subject) return;
+            row.classList.add('tc-mail-row');
+            const controls = el('span', 'tc-row-actions');
+            for (const name of ['pin', 'flag', 'trash', 'read']) {
+                const button = el('button', 'tc-row-action tc-row-' + name);
+                button.type = 'button'; button.dataset.tcAction = name;
+                button.append(mailIcon(name === 'trash' ? 'trash' : name === 'read' ? 'unread' : name));
+                for (const type of ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) {
+                    button.addEventListener(type, event => { event.stopPropagation(); if (type === 'mousedown') event.preventDefault(); });
+                }
+                button.addEventListener('click', async event => {
+                    const record = rcmail.message_list.rows[row.uid];
+                    if (!record) return;
+                    const mbox = rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox;
+                    if (name === 'pin') {
+                        button.disabled = true;
+                        try { await setPins(mbox, [mailUid(row.uid)], !row.classList.contains('tc-pinned')); }
+                        catch (error) { rcmail.display_message(errorText(error), 'error'); }
+                        finally { button.disabled = false; }
+                    } else if (name === 'flag') rcmail.mark_message(record.flagged ? 'unflagged' : 'flagged', row.uid);
+                    else if (name === 'trash') {
+                        if (record.deleted) rcmail.mark_message('undelete', row.uid);
+                        else rcmail.delete_messages(event, row.uid);
+                    }
+                    else rcmail.mark_message(record.unread ? 'read' : 'unread', row.uid);
+                    setTimeout(() => syncMailRow(row), 100);
+                });
+                controls.append(button);
+            }
+            selection.append(controls);
+            const content = el('div', 'tc-row-content');
+            const first = el('div', 'tc-row-first');
+            const from = subject.querySelector(':scope > .fromto');
+            const title = subject.querySelector(':scope > .subject');
+            if (from) first.append(from);
+            if (title) first.append(title);
+            const subjectLink = title?.querySelector('a');
+            if (subjectLink) {
+                subjectLink.removeAttribute('onmouseover');
+                subjectLink.removeAttribute('title');
+            }
+            const snippet = el('div', 'tc-row-snippet', '…');
+            content.append(first, snippet);
+            const trailing = el('div', 'tc-row-trailing');
+            const date = subject.querySelector(':scope > .date');
+            if (date) trailing.append(date);
+            const attachment = row.querySelector('td.flags > .attachment');
+            if (attachment && attachment.querySelector('.attachment')) {
+                const icon = el('span', 'tc-row-attachment');
+                icon.title = rcmail.gettext('withattachment');
+                icon.append(mailIcon('attachment'));
+                trailing.append(icon);
+            }
+            subject.append(content, trailing);
+            syncMailRow(row);
+            observer?.observe(row);
+            if (!observer) queueSnippet(row);
+            row.addEventListener('mouseenter', () => {
+                hovered = row; queueSnippet(row);
+                clearTimeout(hoverTimer);
+                hoverTimer = setTimeout(() => showTooltip(row), 450);
+            });
+            row.addEventListener('mouseleave', () => {
+                if (hovered === row) hovered = null;
+                clearTimeout(hoverTimer); tooltip.hidden = true;
+            });
+        }
+
+        rcmail.message_list.addEventListener('initrow', record => decorate(record.obj));
+        rcmail.addEventListener('listupdate', () => {
+            list.querySelectorAll('tbody tr.message').forEach(decorate);
+            list.querySelectorAll('tbody tr.message').forEach(syncMailRow);
+            sortPinnedRows();
+        });
+        list.querySelectorAll('tbody tr.message').forEach(decorate);
+        sortPinnedRows();
+        const changes = new MutationObserver(records => {
+            for (const record of records) if (record.type === 'attributes' && record.target.classList.contains('tc-mail-row')) syncMailRow(record.target);
+        });
+        changes.observe(list.tBodies[0], { subtree: true, attributes: true, attributeFilter: ['class'] });
     }
 
     async function save() {

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 — 2026-10-27
+
+- Made the blurred Contain filler visible behind very dark personal wallpapers without changing the sharp centered image.
+- Restored text beside bulk-action icons and added per-user pinning for selected messages and individual rows.
+- Rebuilt mail rows with inline pin, flag, delete, and read-state buttons, sender and subject on the first line, an asynchronous text snippet below, and date and attachment at the far edge.
+- Added a message-text tooltip on hover and removed the old hover action menu and redundant list header controls.
+- Kept native Roundcube selection and mail commands; pinned messages move to the top of the current unthreaded page.
+
 ## 0.10.0 — 2026-10-27
 
 - Replaced the four bulk-action text buttons with compact icons and accessible localized tooltips.

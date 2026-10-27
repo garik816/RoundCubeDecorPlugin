@@ -8,6 +8,7 @@ class theme_customizer extends rcube_plugin
     private $saving = false;
     private $initialized = false;
     private const KEY = 'theme_customizer';
+    private const PIN_KEY = 'theme_customizer_pins';
     private $preset_cache;
 
     private function presets()
@@ -64,6 +65,7 @@ class theme_customizer extends rcube_plugin
             'image' => $rc->url('plugin.theme_customizer.image'),
             'formats' => $this->formats(),
             'upload' => $this->upload_error(),
+            'pins' => $this->pins(),
         ]);
     }
 
@@ -82,6 +84,12 @@ class theme_customizer extends rcube_plugin
         $row = $db->fetch_assoc($db->query('SELECT preferences FROM ' . $db->table_name('users', true) . ' WHERE user_id = ?', $rc->user->ID));
         $value = $row && !empty($row['preferences']) ? @unserialize($row['preferences'], ['allowed_classes' => false]) : [];
         return is_array($value) ? $value : [];
+    }
+
+    private function pins()
+    {
+        $pins = $this->raw_prefs()[self::PIN_KEY] ?? [];
+        return is_array($pins) ? $pins : [];
     }
 
     private function defaults()
@@ -284,7 +292,80 @@ class theme_customizer extends rcube_plugin
         if ($op === 'cancel') return $this->cancel();
         if ($op === 'touch') return $this->touch();
         if ($op === 'save') return $this->save();
+        if ($op === 'pin') return $this->pin();
+        if ($op === 'snippets') return $this->snippets();
         $this->reply(false, 'bad_request', 400);
+    }
+
+    private function mail_request()
+    {
+        $mbox = $_POST['_mbox'] ?? null;
+        if (!is_string($mbox) || $mbox === '' || strlen($mbox) > 255 || str_contains($mbox, "\0")) {
+            $this->reply(false, 'bad_request', 400);
+        }
+        return $mbox;
+    }
+
+    private function pin()
+    {
+        $rc = rcmail::get_instance();
+        $mbox = $this->mail_request();
+        $uids = json_decode((string)($_POST['_uids'] ?? ''), true);
+        $pinned = $_POST['_pinned'] ?? null;
+        if (!is_array($uids) || !array_is_list($uids) || count($uids) < 1 || count($uids) > 100 || !in_array($pinned, ['0', '1'], true)) {
+            $this->reply(false, 'bad_request', 400);
+        }
+        foreach ($uids as $uid) if (!is_string($uid) || !preg_match('/^[1-9][0-9]{0,19}$/D', $uid)) {
+            $this->reply(false, 'bad_request', 400);
+        }
+        $pins = $this->pins();
+        $found = 0;
+        foreach (array_unique($uids) as $uid) {
+            if (!$rc->get_storage()->get_message_headers($uid, $mbox)) continue;
+            $found++;
+            if ($pinned === '1') $pins[$mbox][$uid] = time();
+            else unset($pins[$mbox][$uid]);
+        }
+        if (!$found) $this->reply(false, 'not_found', 404);
+        if (empty($pins[$mbox])) unset($pins[$mbox]);
+        // Keep stale folder/UID entries bounded without touching mail flags.
+        $flat = [];
+        foreach ($pins as $folder => $items) if (is_array($items)) {
+            foreach ($items as $id => $time) if (preg_match('/^[1-9][0-9]{0,19}$/D', (string)$id)) {
+                $flat[] = [$folder, (string)$id, (int)$time];
+            }
+        }
+        usort($flat, static fn($a, $b) => $b[2] <=> $a[2]);
+        $pins = [];
+        foreach (array_slice($flat, 0, 500) as [$folder, $id, $time]) $pins[$folder][$id] = $time;
+        $this->saving = true;
+        try { $ok = $rc->user->save_prefs([self::PIN_KEY => $pins]); }
+        finally { $this->saving = false; }
+        if (!$ok) $this->reply(false, 'save_failed', 503);
+        $this->reply(true, 'saved', 200, ['pins' => (object)$pins]);
+    }
+
+    private function snippets()
+    {
+        $mbox = $this->mail_request();
+        $uids = json_decode((string)($_POST['_uids'] ?? ''), true);
+        if (!is_array($uids) || !array_is_list($uids) || count($uids) < 1 || count($uids) > 12) {
+            $this->reply(false, 'bad_request', 400);
+        }
+        foreach ($uids as $uid) if (!is_string($uid) || !preg_match('/^[1-9][0-9]{0,19}$/D', $uid)) {
+            $this->reply(false, 'bad_request', 400);
+        }
+        $out = [];
+        foreach (array_unique($uids) as $uid) {
+            try {
+                $mail = new rcube_message($uid, $mbox);
+                if (!$mail->headers) continue;
+                $body = $mail->first_text_part();
+                $body = preg_replace('/\s+/u', ' ', strip_tags((string)$body));
+                $out[$uid] = mb_substr(trim((string)$body), 0, 1400);
+            } catch (Throwable $e) { $out[$uid] = ''; }
+        }
+        $this->reply(true, 'snippets', 200, ['snippets' => $out]);
     }
 
     private function tab()
