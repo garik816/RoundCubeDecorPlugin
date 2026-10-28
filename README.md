@@ -6,7 +6,7 @@ Pins are saved per user and placed above other messages on the current unthreade
 
 The compose switch shows **My appearance** or a **Recipient view** without the local theme. It changes browser-only styles and leaves the outgoing message HTML unchanged. Recipient mail apps may render the message differently.
 
-Clicking the Textmediary logo on the login page or in the task menu opens https://textmediary.com/ in a new tab.
+Clicking the Textmediary logo on the login page opens https://textmediary.com/ in a new tab. The authenticated task menu starts directly with Compose, Mail, and Contacts.
 
 ## Install
 

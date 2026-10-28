@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2 — 2026-10-28
+
+- Removed the decorative logo slot from the authenticated task rail and moved Compose, Mail, and Contacts to the top. The mobile menu retains its Close control. The transparent linked logo remains on the login page.
+
 ## 0.14.1 — 2026-10-28
 
 - Kept the linked menu logo inside its own width, centered it on desktop and phone, and restored its position when the viewport crosses the desktop/mobile breakpoint. The tiny tablet rail now starts directly with navigation instead of an unreadable logo.
