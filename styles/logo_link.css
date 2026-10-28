@@ -9,17 +9,49 @@
     outline-offset: 3px;
 }
 
+@media screen and (min-width: 481px) and (max-width: 768px) {
+    #layout-menu .popover-header { display: none !important; }
+}
+
+@media screen and (max-width: 480px) {
+    #layout-menu .popover-header { position: relative; }
+    #layout-menu .popover-header > a.tc-logo-link {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: calc(100% - 3.5rem);
+    }
+    #layout-menu .popover-header > a.tc-logo-link img {
+        display: block;
+        max-width: 100%;
+        width: auto;
+        height: 48px;
+        object-fit: contain;
+    }
+}
+
 #taskmenu > a.tc-menu-brand {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
+    max-width: none;
+    min-width: 0;
     height: 4.4rem;
-    padding: .4rem .3rem;
-    margin: 0 0 .2rem;
+    padding: .35rem .5rem;
+    margin: 0;
     background: transparent;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 #taskmenu > a.tc-menu-brand::before { display: none !important; content: none !important; }
-#taskmenu > a.tc-menu-brand img { display: block; width: 116px; height: 58px; object-fit: contain; }
+#taskmenu > a.tc-menu-brand img {
+    display: block;
+    width: 100%;
+    max-width: 98px;
+    max-height: 58px;
+    height: auto;
+    object-fit: contain;
+}

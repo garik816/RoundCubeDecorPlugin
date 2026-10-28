@@ -1,5 +1,16 @@
 (function () {
     'use strict';
+    const wideMenu = window.matchMedia('(min-width: 769px)');
+
+    function positionMenuLogo() {
+        const header = document.querySelector('#layout-menu .popover-header');
+        const menu = document.getElementById('taskmenu');
+        const link = header?.querySelector('.tc-logo-link') || menu?.querySelector('.tc-logo-link');
+        if (!link || !header || !menu) return;
+        link.classList.toggle('tc-menu-brand', wideMenu.matches);
+        if (wideMenu.matches) menu.prepend(link);
+        else header.prepend(link);
+    }
 
     function linkLogos() {
         for (const image of document.querySelectorAll('.task-login #layout-content > img#logo, #layout-menu .popover-header > img#logo')) {
@@ -13,13 +24,11 @@
             image.alt = 'Textmediary';
             image.replaceWith(link);
             link.append(image);
-            if (image.closest('#layout-menu') && window.matchMedia('(min-width: 769px)').matches) {
-                link.classList.add('tc-menu-brand');
-                document.getElementById('taskmenu')?.prepend(link);
-            }
         }
+        positionMenuLogo();
     }
 
+    wideMenu.addEventListener('change', positionMenuLogo);
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', linkLogos, { once: true });
     else linkLogos();
 })();

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1 — 2026-10-28
+
+- Kept the linked menu logo inside its own width, centered it on desktop and phone, and restored its position when the viewport crosses the desktop/mobile breakpoint. The tiny tablet rail now starts directly with navigation instead of an unreadable logo.
+
 ## 0.14.0 — 2026-10-28
 
 - Moved the transparent linked logo into the top of the desktop task menu, removing its separate dark header; softened the About/Logout area.
