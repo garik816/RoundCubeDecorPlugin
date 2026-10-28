@@ -1,0 +1,10 @@
+.tc-logo-link {
+    display: inline-block;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.tc-logo-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.1 — 2026-10-28
+
+- Made the Textmediary logo on the login page and in the task menu link to https://textmediary.com/ in a new tab.
+
 ## 0.13.0 — 2026-10-28
 
 - Replaced the opaque black logo background with an exact transparent rendering of the bundled Textmediary artwork.

@@ -36,6 +36,10 @@ class theme_customizer extends rcube_plugin
         if (!is_array($logos)) $logos = $logos ? ['*' => $logos] : [];
         $logos['elastic:*'] = $this->url('assets/logo-transparent.svg');
         $rc->config->set('skin_logo', $logos);
+        if ($rc->output && $rc->output->type === 'html') {
+            $this->include_stylesheet('styles/logo_link.css');
+            $this->include_script('js/logo_link.js');
+        }
         if (!$rc->user || !$rc->user->ID) return;
         $this->initialized = true;
         $this->add_texts('localization', true);

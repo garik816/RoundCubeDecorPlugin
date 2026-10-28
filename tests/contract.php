@@ -8,12 +8,14 @@ class rcube_plugin
     public $ID = 'theme_customizer';
     public $buttons = [];
     public $actions = [];
+    public $styles = [];
+    public $scripts = [];
     public function load_config() {}
     public function add_texts($path, $client) {}
     public function register_action($name, $callback) { $this->actions[] = $name; }
     public function add_hook($name, $callback) {}
-    public function include_stylesheet($path) {}
-    public function include_script($path) {}
+    public function include_stylesheet($path) { $this->styles[] = $path; }
+    public function include_script($path) { $this->scripts[] = $path; }
     public function add_button($data, $container) { $this->buttons[] = [$data, $container]; }
     public function url($path) { return '/plugins/theme_customizer/' . $path; }
 }
@@ -98,7 +100,8 @@ $json_plugin = new theme_customizer();
 $rc->output = new FakeOutput();
 $rc->output->type = 'json';
 $json_plugin->init();
-check(count($json_plugin->actions) === 2 && count($json_plugin->buttons) === 0 && !$rc->output->env, 'JSON requests register actions without HTML assets');
+check(count($json_plugin->actions) === 2 && count($json_plugin->buttons) === 0 && !$rc->output->env
+    && !$json_plugin->scripts && !$json_plugin->styles, 'JSON requests register actions without HTML assets');
 $rc->output = new FakeOutput();
 
 $defaults = callPrivate($plugin, 'defaults');
@@ -201,6 +204,8 @@ $guest->config->data = ['skin' => 'elastic'];
 $guest_plugin = new theme_customizer();
 $guest_plugin->init();
 check($guest->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logo-transparent.svg', 'login page gets transparent Textmediary logo');
+check(in_array('js/logo_link.js', $guest_plugin->scripts, true)
+    && in_array('styles/logo_link.css', $guest_plugin->styles, true), 'login page loads the logo link');
 check(count($guest_plugin->buttons) === 0 && count($guest_plugin->actions) === 0, 'guest gets no appearance actions');
 
 $_SESSION['language'] = 'uk_UA';
