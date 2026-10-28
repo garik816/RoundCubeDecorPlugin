@@ -13,6 +13,10 @@
             image.alt = 'Textmediary';
             image.replaceWith(link);
             link.append(image);
+            if (image.closest('#layout-menu') && window.matchMedia('(min-width: 769px)').matches) {
+                link.classList.add('tc-menu-brand');
+                document.getElementById('taskmenu')?.prepend(link);
+            }
         }
     }
 

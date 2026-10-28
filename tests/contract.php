@@ -91,7 +91,7 @@ check(callPrivate($plugin, 'base') === false, 'missing storage root is not creat
 $rc->config->data['theme_customizer_storage'] = $base;
 $plugin->init();
 $plugin->init();
-check(count($plugin->buttons) === 1 && $plugin->buttons[0][1] === 'taskbar', 'one navigation button after repeated init');
+check(count($plugin->buttons) === 0, 'appearance opens from the Settings page without a separate task-menu entry');
 check($rc->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logo-transparent.svg', 'Elastic uses transparent bundled Textmediary logo');
 check(count($plugin->actions) === 2, 'private API and image actions registered');
 check(count($rc->output->env['theme_customizer']['presets']) === 7, 'seven presets loaded from manifest');

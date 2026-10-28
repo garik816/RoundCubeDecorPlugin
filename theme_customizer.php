@@ -55,12 +55,6 @@ class theme_customizer extends rcube_plugin
         $this->include_stylesheet('styles/theme_customizer.css');
         $this->include_script('js/theme_customizer.js');
         $this->cleanup_expired_on_page();
-        $this->add_button([
-            'type' => 'link', 'command' => 'plugin.theme_customizer.open',
-            'label' => 'appearance', 'title' => 'appearance',
-            'class' => 'tc-nav', 'classact' => 'tc-nav', 'innerclass' => 'inner',
-            'domain' => $this->ID,
-        ], 'taskbar');
         $rc->output->set_env('theme_customizer', [
             'settings' => $this->settings(), 'presets' => $this->presets(),
             'builtins' => $this->builtins(), 'images' => $this->gallery(),
@@ -365,6 +359,9 @@ class theme_customizer extends rcube_plugin
                 $mail = new rcube_message($uid, $mbox);
                 if (!$mail->headers) continue;
                 $body = $mail->first_text_part();
+                if (!is_string($body) || trim($body) === '') {
+                    $body = rcmail::get_instance()->get_storage()->get_body($uid);
+                }
                 $body = preg_replace('/\s+/u', ' ', strip_tags((string)$body));
                 $out[$uid] = mb_substr(trim((string)$body), 0, 1400);
             } catch (Throwable $e) { $out[$uid] = ''; }

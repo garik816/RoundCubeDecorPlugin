@@ -328,7 +328,7 @@
         const tabs = el('div', 'tc-tabs');
         tabs.setAttribute('role', 'tablist');
         const body = el('div', 'tc-body');
-        ['themes', 'backgrounds', 'messages', 'interface'].forEach((name, index) => {
+        ['backgrounds', 'messages', 'interface'].forEach((name, index) => {
             const tabButton = makeButton(t(name), 'tc-tab', () => showTab(name));
             tabButton.id = 'tc-tab-' + name;
             tabButton.setAttribute('role', 'tab');
@@ -383,21 +383,25 @@
     }
 
     function renderChoices() {
-        const themes = panel.querySelector('#tc-section-themes');
         const backgrounds = panel.querySelector('#tc-section-backgrounds');
-        themes.replaceChildren(); backgrounds.replaceChildren();
-        themes.append(el('p', 'tc-intro', t('themes_help')));
+        backgrounds.replaceChildren();
+        backgrounds.append(el('p', 'tc-intro', t('themes_help')));
         const badge = el('p', 'tc-custom-badge', t('custom_theme'));
-        themes.append(badge);
-        const themeGrid = el('div', 'tc-grid');
+        backgrounds.append(badge);
+        const presetSelect = el('select', 'tc-input');
         Object.keys(env.presets).forEach(id => {
-            const preset = env.presets[id];
-            themeGrid.append(radioChoice('preset', id, t(id), env.builtins[id].thumb, draft.preset === id, () => {
-                draft = Object.assign({}, draft, preset, { preset: id });
-                apply(draft); renderChoices(); renderControls(); message('');
-            }));
+            const option = el('option', '', t(id)); option.value = id; presetSelect.append(option);
         });
-        themes.append(themeGrid);
+        const customOption = el('option', '', t('custom_theme'));
+        customOption.value = 'custom'; presetSelect.append(customOption);
+        presetSelect.value = draft.preset;
+        presetSelect.addEventListener('change', () => {
+            const id = presetSelect.value;
+            if (!env.presets[id]) return;
+            draft = Object.assign({}, draft, env.presets[id], { preset: id });
+            apply(draft); renderChoices(); renderControls(); message('');
+        });
+        backgrounds.append(field(t('themes'), presetSelect));
         backgrounds.append(el('p', 'tc-intro', t('background_help')));
         const grid = el('div', 'tc-grid');
         grid.append(radioChoice('background', 'none', t('neutral'), '', draft.background === 'none', () => change('background', 'none')));
@@ -679,6 +683,7 @@
             pin: ['M8 3h8l-1 6 3 3v2H6v-2l3-3-1-6Z', 'M12 14v7'],
             flag: ['M5 21V4', 'M5 5c5-4 9 4 14 0v11c-5 4-9-4-14 0'],
             trash: ['M4 7h16', 'M9 7V4h6v3', 'm6 7 1 13h10l1-13', 'M10 11v6', 'M14 11v6'],
+            broom: ['M3 21h12', 'M11 20 20 4', 'm16 3 5 3', 'm7 14 9 5', 'm0 0-6 2-3-3 4-4'],
             unread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
             read: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
             move: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8', 'm15 11 3 3-3 3'],
@@ -729,6 +734,8 @@
         const rows = Array.from(tbody.querySelectorAll(':scope > tr.message'));
         const first = rows.find(row => !row.classList.contains('tc-pinned'));
         for (const row of rows) if (row.classList.contains('tc-pinned')) tbody.insertBefore(row, first || null);
+        rows.forEach(row => row.classList.remove('tc-after-pins'));
+        if (rows.some(row => row.classList.contains('tc-pinned'))) first?.classList.add('tc-after-pins');
     }
 
     function syncMailRow(row) {
@@ -812,7 +819,12 @@
                             row.querySelector('.tc-row-snippet')?.replaceChildren(document.createTextNode(text || t('row_preview_empty')));
                             if (hovered === row) showTooltip(row);
                         }
-                    } catch (_) { /* A later list update or hover can retry. */ }
+                    } catch (_) {
+                        for (const [key, row] of batch) {
+                            row.querySelector('.tc-row-snippet')?.replaceChildren(document.createTextNode(t('row_preview_unavailable')));
+                            snippets.delete(key);
+                        }
+                    }
                     finally { batch.forEach(([key]) => loadingSnippets.delete(key)); }
                 }
             }
@@ -820,7 +832,6 @@
 
         function closeMenu() {
             menu.hidden = true;
-            menuRow?.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'false');
             menuRow = null;
         }
 
@@ -855,9 +866,7 @@
             clearTimeout(hoverTimer);
             tooltip.hidden = true;
             hovered = null;
-            menuRow?.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'false');
             menuRow = row;
-            row.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'true');
             menu.replaceChildren();
             const options = [
                 ['read', record.unread ? 'read' : 'unread', record.unread ? 'row_read' : 'row_unread'],
@@ -905,26 +914,17 @@
             if (!selection || !subject) return;
             row.classList.add('tc-mail-row');
             const controls = el('span', 'tc-row-actions');
-            for (const name of ['pin', 'read', 'flag', 'more']) {
+            for (const name of ['read', 'flag', 'pin']) {
                 const button = el('button', 'tc-row-action tc-row-' + name);
                 button.type = 'button'; button.dataset.tcAction = name;
                 button.append(name === 'read' ? envelopeIcon() : mailIcon(name));
-                if (name === 'more') {
-                    button.title = t('context_actions');
-                    button.setAttribute('aria-label', button.title);
-                    button.setAttribute('aria-haspopup', 'menu');
-                    button.setAttribute('aria-expanded', 'false');
-                }
                 for (const type of ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) {
                     button.addEventListener(type, event => { event.stopPropagation(); if (type === 'mousedown') event.preventDefault(); });
                 }
                 button.addEventListener('click', async event => {
-                    if (name === 'more') openMenu(event, row);
-                    else {
-                        if (name === 'pin') button.disabled = true;
-                        try { await runRowAction(name, row, event); }
-                        finally { button.disabled = false; }
-                    }
+                    if (name === 'pin') button.disabled = true;
+                    try { await runRowAction(name, row, event); }
+                    finally { button.disabled = false; }
                 });
                 controls.append(button);
             }
@@ -940,7 +940,7 @@
                 subjectLink.removeAttribute('onmouseover');
                 subjectLink.removeAttribute('title');
             }
-            const snippet = el('div', 'tc-row-snippet', '…');
+            const snippet = el('div', 'tc-row-snippet', t('row_preview_loading'));
             content.append(first, snippet);
             const trailing = el('div', 'tc-row-trailing');
             const date = subject.querySelector(':scope > .date');
@@ -976,9 +976,11 @@
             list.querySelectorAll('tbody tr.message').forEach(decorate);
             list.querySelectorAll('tbody tr.message').forEach(syncMailRow);
             sortPinnedRows();
+            Array.from(list.querySelectorAll('tbody tr.message')).slice(0, 20).forEach(queueSnippet);
         });
         list.querySelectorAll('tbody tr.message').forEach(decorate);
         sortPinnedRows();
+        Array.from(list.querySelectorAll('tbody tr.message')).slice(0, 20).forEach(queueSnippet);
         const changes = new MutationObserver(records => {
             for (const record of records) if (record.type === 'attributes' && record.target.classList.contains('tc-mail-row')) syncMailRow(record.target);
         });
@@ -1009,6 +1011,35 @@
             if (performance.now() - menuOpenedAt > 250) closeMenu();
         }, { passive: true });
         window.addEventListener('resize', closeMenu);
+    }
+
+    function mountAppearanceInSettings() {
+        if (rcmail.env.task !== 'settings') return;
+        const settings = document.getElementById('settings-menu');
+        if (!settings || settings.querySelector('.tc-settings-appearance')) return;
+        const item = el('li', 'tc-settings-appearance');
+        const button = el('button', 'tc-settings-open', t('appearance'));
+        button.type = 'button';
+        button.addEventListener('click', open);
+        item.append(button);
+        settings.append(item);
+    }
+
+    function mountTrashAction() {
+        if (rcmail.env.task !== 'mail' || !rcmail.env.trash_mailbox) return;
+        const folder = rcmail.get_folder_li?.(rcmail.env.trash_mailbox, '', true);
+        if (!folder || folder.querySelector('.tc-empty-trash')) return;
+        const button = el('button', 'tc-empty-trash');
+        button.type = 'button';
+        button.title = t('empty_trash');
+        button.setAttribute('aria-label', button.title);
+        button.append(mailIcon('broom'));
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            rcmail.purge_mailbox(rcmail.env.trash_mailbox);
+        });
+        folder.append(button);
     }
 
     async function save() {
@@ -1044,6 +1075,13 @@
     apply(saved);
     rcmail.addEventListener('init', () => {
         rcmail.register_command('plugin.theme_customizer.open', open, true);
+        mountAppearanceInSettings();
+        mountTrashAction();
+        if (rcmail.env.task === 'mail') {
+            rcmail.addEventListener('listupdate', mountTrashAction);
+            const folders = document.getElementById('mailboxlist');
+            if (folders) new MutationObserver(mountTrashAction).observe(folders, { childList: true, subtree: true });
+        }
         mountMailSelection();
         if (rcmail.env.task === 'mail' && document.getElementById('messagecontframe')) {
             const originalDoubleClick = rcmail.msglist_dbl_click;

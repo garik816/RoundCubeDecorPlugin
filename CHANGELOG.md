@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.0 — 2026-10-28
+
+- Moved the transparent linked logo into the top of the desktop task menu, removing its separate dark header; softened the About/Logout area.
+- Moved Appearance into Settings and combined presets with background selection so the same pictures do not appear on two tabs.
+- Added an Empty Trash broom beside the Trash folder, using Roundcube's own confirmation and purge command.
+- Put read status, flag, and pin controls in the requested order, removed the inline More button, and separated pinned mail from the rest of the list.
+- Increased the second-line snippet size, reduced tooltip text size, and added a fallback body fetch and explicit loading/error states for snippets.
+
 ## 0.13.1 — 2026-10-28
 
 - Made the Textmediary logo on the login page and in the task menu link to https://textmediary.com/ in a new tab.

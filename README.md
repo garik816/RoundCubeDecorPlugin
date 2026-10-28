@@ -16,4 +16,4 @@ The plugin does not modify Roundcube core files or the Elastic skin. Personal im
 
 ## Compatibility
 
-Verified with Roundcube 1.7.5, Elastic, and PHP 8.4.26. Other Roundcube versions and skins have not been verified. The plugin stays inactive on non-Elastic skins.
+Verified with Roundcube 1.7.5, Elastic, and PHP 8.4.26. Other Roundcube versions and skins have not been verified. The plugin stays inactive on non-Elastic skins. Appearance is available under Settings.

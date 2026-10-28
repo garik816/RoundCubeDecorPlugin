@@ -60,18 +60,23 @@
       button.focus();
       rcmail.commands['plugin.theme_customizer.open']();
       check(!document.getElementById('tc-panel').hidden, 'panel opens');
-      check(document.querySelectorAll('[data-tc-choice^="preset:"]').length === 7, 'seven themes');
-      check(document.querySelectorAll('.tc-tab').length === 4, 'message background tab');
-      document.querySelector('[data-tc-choice="preset:space"]').click();
+      check(document.querySelector('#tc-section-backgrounds select').options.length === 8, 'seven presets and a custom option');
+      check(document.querySelectorAll('.tc-tab').length === 3, 'background, message, and interface tabs');
+      const preset = document.querySelector('#tc-section-backgrounds select');
+      preset.value = 'space'; preset.dispatchEvent(new Event('change'));
       check(document.documentElement.classList.contains('tc-dark'), 'dark preset preview');
       document.querySelector('.tc-panel').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
       check(document.getElementById('tc-panel').hidden && !document.documentElement.classList.contains('tc-dark'), 'Escape restores saved mode');
       check(document.activeElement === button, 'focus returns to button');
       rcmail.commands['plugin.theme_customizer.open']();
-      document.querySelector('[data-tc-choice="preset:forest"]').click();
+      document.querySelector('#tc-section-backgrounds select').value = 'forest';
+      document.querySelector('#tc-section-backgrounds select').dispatchEvent(new Event('change'));
       check(document.documentElement.style.getPropertyValue('--tc-wallpaper').includes('forest.jpg'), 'preset wallpaper preview');
       check(document.documentElement.scrollWidth <= window.innerWidth, 'no horizontal overflow');
-      if (location.hash === '#dark') document.querySelector('[data-tc-choice="preset:space"]').click();
+      if (location.hash === '#dark') {
+        document.querySelector('#tc-section-backgrounds select').value = 'space';
+        document.querySelector('#tc-section-backgrounds select').dispatchEvent(new Event('change'));
+      }
       if (location.hash === '#interface') document.getElementById('tc-tab-interface').click();
       document.getElementById('test-results').textContent = results.join(' | ');
       document.body.dataset.tests = results.every(x => x.startsWith('OK')) ? 'passed' : 'failed';

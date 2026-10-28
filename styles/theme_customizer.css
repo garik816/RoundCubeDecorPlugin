@@ -103,7 +103,40 @@ html.theme-customizer-enabled #layout-menu {
 }
 
 html.theme-customizer-enabled #layout-menu .popover-header {
-    background: rgba(26,42,55,var(--tc-surface)) !important;
+    background: transparent !important;
+}
+
+@media screen and (min-width: 769px) {
+    html.theme-customizer-enabled #layout-menu .popover-header { display: none !important; }
+    html.theme-customizer-enabled #layout-menu {
+        flex: 0 0 124px;
+        width: 124px;
+        min-width: 124px;
+    }
+    html.theme-customizer-enabled #taskmenu a:not(.tc-menu-brand) {
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        padding-left: .25rem;
+        padding-right: .25rem;
+    }
+    html.theme-customizer-enabled #taskmenu a .inner {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+html.theme-customizer-enabled #layout-menu .special-buttons {
+    background: transparent !important;
+    border-top: 1px solid rgba(255,255,255,.16);
+    border-radius: 0 0 var(--tc-radius) var(--tc-radius);
+    overflow: hidden;
+}
+
+html.theme-customizer-enabled #layout-menu .special-buttons a {
+    border-radius: min(8px, var(--tc-radius));
 }
 
 html.theme-customizer-enabled #layout-menu .popover-header img {
@@ -382,6 +415,56 @@ html.theme-customizer-enabled #taskmenu a.theme {
     display: none;
 }
 
+html.theme-customizer-enabled #settings-menu .tc-settings-open {
+    display: block;
+    width: 100%;
+    padding: .7rem .9rem;
+    border: 0;
+    background: transparent;
+    color: var(--tc-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+html.theme-customizer-enabled #settings-menu .tc-settings-open::before {
+    content: '\f53f';
+    display: inline-block;
+    width: 1.6rem;
+    font-family: Icons;
+    font-weight: 900;
+}
+
+html.theme-customizer-enabled #settings-menu .tc-settings-open:hover,
+html.theme-customizer-enabled #settings-menu .tc-settings-open:focus-visible {
+    color: var(--tc-accent-text);
+    background: var(--tc-accent);
+}
+
+html.theme-customizer-enabled #mailboxlist li { position: relative; }
+html.theme-customizer-enabled #mailboxlist li:has(> .tc-empty-trash) > a { padding-right: 2.3rem; }
+html.theme-customizer-enabled #mailboxlist .tc-empty-trash {
+    position: absolute;
+    top: 50%;
+    right: .4rem;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: .2rem;
+    border: 0;
+    border-radius: 6px;
+    color: var(--tc-ink);
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+}
+html.theme-customizer-enabled #mailboxlist .tc-empty-trash svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+html.theme-customizer-enabled #mailboxlist .tc-empty-trash:hover,
+html.theme-customizer-enabled #mailboxlist .tc-empty-trash:focus-visible { color: var(--tc-accent-text); background: var(--tc-accent); }
+
 html.theme-customizer-enabled #taskmenu a.tc-nav:focus-visible,
 html.theme-customizer-enabled .tc-panel :focus-visible {
     outline: 3px solid var(--tc-accent);
@@ -480,8 +563,8 @@ html.theme-customizer-enabled.tc-mail-list-ui #messagelist-content .listing-hove
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-    width: 8.35rem;
-    min-width: 8.35rem;
+    width: 6.65rem;
+    min-width: 6.65rem;
     padding: .1rem .18rem;
     white-space: nowrap;
     vertical-align: middle;
@@ -649,9 +732,10 @@ html.theme-customizer-enabled.tc-mail-list-ui .tc-row-snippet {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    line-height: 1.15rem;
-    font-size: .82rem;
-    opacity: .73;
+    line-height: 1.3rem;
+    font-size: .93rem;
+    font-weight: 400;
+    opacity: .84;
 }
 
 html.theme-customizer-enabled.tc-mail-list-ui .tc-row-trailing {
@@ -677,6 +761,11 @@ html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.tc-pinned > td {
     box-shadow: inset 3px 0 var(--tc-accent);
 }
 
+html.theme-customizer-enabled.tc-mail-list-ui #messagelist tr.tc-after-pins > td {
+    border-top: 10px solid transparent !important;
+    background-clip: padding-box;
+}
+
 html.theme-customizer-enabled .tc-mail-tooltip {
     position: fixed;
     z-index: 10000;
@@ -693,7 +782,9 @@ html.theme-customizer-enabled .tc-mail-tooltip {
     backdrop-filter: none;
     pointer-events: none;
     white-space: pre-wrap;
-    line-height: 1.4;
+    font-size: .86rem;
+    font-weight: 400;
+    line-height: 1.35;
 }
 
 html.theme-customizer-enabled.tc-dark .tc-mail-tooltip {
@@ -768,8 +859,8 @@ html.theme-customizer-enabled .tc-mail-context-action:disabled {
 
 @media (max-width: 760px) {
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-        width: 8.15rem;
-        min-width: 8.15rem;
+        width: 6.4rem;
+        min-width: 6.4rem;
     }
     html.theme-customizer-enabled.tc-mail-list-ui .tc-row-action { width: 1.5rem; height: 1.5rem; }
     html.theme-customizer-enabled.tc-mail-list-ui .tc-row-trailing { min-width: 4rem; }
@@ -779,8 +870,8 @@ html.theme-customizer-enabled .tc-mail-context-action:disabled {
 
 @media (max-width: 600px) {
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.selection {
-        width: 7.8rem;
-        min-width: 7.8rem;
+        width: 6.2rem;
+        min-width: 6.2rem;
     }
     html.theme-customizer-enabled.tc-mail-list-ui #messagelist tbody tr.tc-mail-row > td.subject {
         grid-template-rows: auto auto;

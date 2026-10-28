@@ -10,6 +10,7 @@ class FakeDB {
 }
 class FakeStorage {
     public function get_message_headers($uid, $folder) { return $uid === '901' && $folder === 'INBOX' ? (object)['uid' => $uid] : false; }
+    public function get_body($uid) { return '<p>Резервний початок листа.</p>'; }
 }
 class FakeUser {
     public int $ID = 7;
@@ -31,7 +32,7 @@ class rcmail {
 class rcube_message {
     public $headers;
     public function __construct($uid, $folder) { $this->headers = $uid === '901' && $folder === 'INBOX' ? (object)['uid' => $uid] : false; }
-    public function first_text_part() { return 'Початок <b>листа</b> та наступний рядок.'; }
+    public function first_text_part() { return ($_POST['_fallback'] ?? '') === '1' ? '' : 'Початок <b>листа</b> та наступний рядок.'; }
 }
 require dirname(__DIR__) . '/theme_customizer.php';
 rcmail::$instance = new rcmail();
@@ -41,6 +42,7 @@ switch ($argv[1] ?? '') {
     case 'pin': $_POST['_op'] = 'pin'; $_POST['_pinned'] = '1'; break;
     case 'unpin': $_POST['_op'] = 'pin'; $_POST['_pinned'] = '0'; break;
     case 'snippets': $_POST['_op'] = 'snippets'; break;
+    case 'snippets_fallback': $_POST['_op'] = 'snippets'; $_POST['_fallback'] = '1'; break;
     case 'invalid': $_POST['_op'] = 'pin'; $_POST['_pinned'] = '1'; $_POST['_uids'] = '["../901"]'; break;
     default: exit(2);
 }
