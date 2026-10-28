@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.0 — 2026-10-28
+
+- Replaced the opaque black logo background with an exact transparent rendering of the bundled Textmediary artwork.
+- Made ordinary row controls gray, active controls white on a readable accent background, and flagged controls red.
+- Narrowed the sender area and limited the message-text tooltip to the subject and snippet. Reduced unchecked checkbox prominence and added subtle button feedback.
+- Reordered bulk and context actions by frequency, added Spam through the installed MarkAsJunk plugin, and made Pin change to Unpin for pinned selections.
+
 ## 0.12.0 — 2026-10-27
 
 - Tightened and reduced the per-message buttons, moved the read indicator beside Pin, and kept icons visible when their state changes. Active icons use the configured accent color.

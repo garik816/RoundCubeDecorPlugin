@@ -90,7 +90,7 @@ $rc->config->data['theme_customizer_storage'] = $base;
 $plugin->init();
 $plugin->init();
 check(count($plugin->buttons) === 1 && $plugin->buttons[0][1] === 'taskbar', 'one navigation button after repeated init');
-check($rc->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logoB.png', 'Elastic uses bundled Textmediary logo');
+check($rc->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logo-transparent.svg', 'Elastic uses transparent bundled Textmediary logo');
 check(count($plugin->actions) === 2, 'private API and image actions registered');
 check(count($rc->output->env['theme_customizer']['presets']) === 7, 'seven presets loaded from manifest');
 check(str_starts_with($rc->output->env['theme_customizer']['builtins']['sea']['full'], 'static.php/plugins/'), 'built-in images use Roundcube static route');
@@ -200,7 +200,7 @@ $guest->user = null;
 $guest->config->data = ['skin' => 'elastic'];
 $guest_plugin = new theme_customizer();
 $guest_plugin->init();
-check($guest->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logoB.png', 'login page gets Textmediary logo');
+check($guest->config->get('skin_logo')['elastic:*'] === '/plugins/theme_customizer/assets/logo-transparent.svg', 'login page gets transparent Textmediary logo');
 check(count($guest_plugin->buttons) === 0 && count($guest_plugin->actions) === 0, 'guest gets no appearance actions');
 
 $_SESSION['language'] = 'uk_UA';

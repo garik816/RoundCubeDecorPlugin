@@ -2,10 +2,11 @@
 $labels = [
     'bulk_actions' => 'Selected message actions', 'bulk_selected' => 'Selected',
     'bulk_markread' => 'Mark read', 'bulk_markunread' => 'Mark unread',
-    'bulk_moveto' => 'Move', 'bulk_delete' => 'Delete',
+    'bulk_moveto' => 'Move', 'bulk_delete' => 'Delete', 'bulk_spam' => 'Spam',
     'bulk_pin' => 'Pin', 'bulk_unpin' => 'Unpin',
     'row_flag' => 'Flag message', 'row_unflag' => 'Remove flag',
     'row_delete' => 'Delete message', 'row_undelete' => 'Restore message',
+    'row_spam' => 'Mark as spam',
     'row_read' => 'Mark read', 'row_unread' => 'Mark unread',
     'row_preview' => 'Message text', 'row_preview_empty' => 'Message text unavailable',
     'context_actions' => 'Message actions',

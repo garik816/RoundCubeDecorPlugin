@@ -58,6 +58,16 @@
         return 0.2126 * light[0] + 0.7152 * light[1] + 0.0722 * light[2] > 0.179 ? '#000000' : '#ffffff';
     }
 
+    function rowAccent(hex) {
+        const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+        let color = hex;
+        while (contrast(color) !== '#ffffff') {
+            for (let i = 0; i < rgb.length; i++) rgb[i] = Math.floor(rgb[i] * 0.9);
+            color = '#' + rgb.map(value => value.toString(16).padStart(2, '0')).join('');
+        }
+        return color;
+    }
+
     function bodyAppearance(state, dark) {
         const active = state.messageBodyMode !== 'original';
         const fill = state.messageBodyMode === 'reading' ? (dark ? '#1d2631' : '#fafcff') : state.messageBodyFill;
@@ -204,6 +214,7 @@
         root.style.setProperty('--tc-text', state.text + 'px');
         root.style.setProperty('--tc-accent', state.accent);
         root.style.setProperty('--tc-accent-text', contrast(state.accent));
+        root.style.setProperty('--tc-row-active', rowAccent(state.accent));
         root.dataset.tcDensity = state.density;
         if (panel) panel.querySelector('.tc-hero-current').textContent = labelFor(state.background);
     }
@@ -589,16 +600,18 @@
             markunread: ['M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', 'm3 7 9 6 9-6'],
             moveto: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8m-3-3 3 3-3 3'],
             delete: ['M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v6m4-6v6'],
+            spam: ['M12 3 2 21h20L12 3Z', 'M12 9v5', 'M12 18h.01'],
         };
         const actions = [
-            ['pin', 'pin', null],
             ['markread', 'mark', 'read'],
             ['markunread', 'mark', 'unread'],
             ['moveto', 'move', null],
+            ['pin', 'pin', null],
             ['delete', 'delete', null],
+            ['spam', 'plugin.markasjunk.junk', null],
         ];
         for (const [label, command, prop] of actions) {
-            const button = el('button', 'tc-bulk-button tc-bulk-' + (prop || command));
+            const button = el('button', 'tc-bulk-button tc-bulk-' + label);
             button.type = 'button';
             button.title = t('bulk_' + label);
             button.setAttribute('aria-label', button.title);
@@ -623,23 +636,40 @@
                         groups.get(mbox).push(mailUid(uid));
                     }
                     button.disabled = true;
-                    try { for (const [mbox, uids] of groups) await setPins(mbox, uids, true); }
+                    const shouldPin = button.dataset.tcUnpin !== 'true';
+                    try { for (const [mbox, uids] of groups) await setPins(mbox, uids, shouldPin); }
                     catch (error) { rcmail.display_message(errorText(error), 'error'); }
                     update();
                 } else rcmail.command(command, prop === null ? undefined : prop, button, event);
             });
-            buttons.push([button, command]);
+            buttons.push([button, command, label]);
         }
         bar.append(count, ...buttons.map(item => item[0]));
         listPanel.insertBefore(bar, document.getElementById('messagelist-content'));
 
         function update() {
-            const selected = rcmail.message_list.get_selection(false).length;
-            count.textContent = t('bulk_selected') + ': ' + selected;
-            for (const [button, command] of buttons) button.disabled = selected === 0 || (command !== 'pin' && !rcmail.commands[command]);
+            const selection = rcmail.message_list.get_selection(false);
+            count.textContent = t('bulk_selected') + ': ' + selection.length;
+            const allPinned = selection.length > 0 && selection.every(uid => {
+                const mbox = rcmail.env.messages?.[uid]?.mbox || rcmail.env.mailbox;
+                return Object.prototype.hasOwnProperty.call(pins[mbox] || {}, mailUid(uid));
+            });
+            for (const [button, command, label] of buttons) {
+                if (label === 'pin') {
+                    button.dataset.tcUnpin = allPinned ? 'true' : 'false';
+                    button.title = t(allPinned ? 'bulk_unpin' : 'bulk_pin');
+                    button.setAttribute('aria-label', button.title);
+                    button.querySelector('.tc-bulk-label').textContent = button.title;
+                }
+                const spamAvailable = typeof rcmail.markasjunk_mark === 'function'
+                    && rcmail.env.mailbox !== rcmail.env.markasjunk_spam_mailbox;
+                button.disabled = selection.length === 0 || (command === 'plugin.markasjunk.junk'
+                    ? !spamAvailable : command !== 'pin' && !rcmail.commands[command]);
+            }
         }
         rcmail.message_list.addEventListener('select', update);
         rcmail.addEventListener('listupdate', update);
+        bar.addEventListener('tc-pins-updated', update);
         mountMailRows(list);
         update();
     }
@@ -653,6 +683,7 @@
             read: ['M3 9l9-5 9 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z', 'm3 9 9 7 9-7'],
             move: ['M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z', 'M10 14h8', 'm15 11 3 3-3 3'],
             more: ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
+            spam: ['M12 3 2 21h20L12 3Z', 'M12 9v5', 'M12 18h.01'],
             attachment: ['M20 12.5 11 21a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.3-8.3'],
         };
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -688,6 +719,7 @@
         pins = result.pins || {};
         document.querySelectorAll('#messagelist tbody tr.message').forEach(syncMailRow);
         sortPinnedRows();
+        document.querySelector('.tc-bulk-actions')?.dispatchEvent(new Event('tc-pins-updated'));
     }
 
     function sortPinnedRows() {
@@ -734,7 +766,7 @@
         menu.setAttribute('aria-label', t('context_actions'));
         document.body.append(tooltip, menu);
         const snippets = new Map(), pendingSnippets = new Map(), loadingSnippets = new Set();
-        let timer, hoverTimer, hovered, menuRow;
+        let timer, hoverTimer, hovered, menuRow, menuOpenedAt = 0;
         const keyFor = row => (rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox) + '\0' + mailUid(row.uid);
         const observer = window.IntersectionObserver ? new IntersectionObserver(entries => {
             entries.forEach(entry => { if (entry.isIntersecting) queueSnippet(entry.target); });
@@ -808,6 +840,9 @@
                 rcmail.folder_selector(event, (folder, button) => {
                     rcmail.command('move', { id: folder, uids: [row.uid] }, button, event, true);
                 });
+            } else if (name === 'spam' && typeof rcmail.markasjunk_mark === 'function') {
+                const lock = rcmail.set_busy(true, 'loading');
+                rcmail.http_post('plugin.markasjunk.junk', rcmail.selection_post_data({ _uid: [row.uid] }), lock);
             }
             setTimeout(() => syncMailRow(row), 100);
         }
@@ -825,12 +860,16 @@
             row.querySelector('.tc-row-more')?.setAttribute('aria-expanded', 'true');
             menu.replaceChildren();
             const options = [
-                ['pin', 'pin', row.classList.contains('tc-pinned') ? 'bulk_unpin' : 'bulk_pin'],
                 ['read', record.unread ? 'read' : 'unread', record.unread ? 'row_read' : 'row_unread'],
-                ['flag', 'flag', record.flagged ? 'row_unflag' : 'row_flag'],
                 ['move', 'move', 'bulk_moveto'],
+                ['pin', 'pin', row.classList.contains('tc-pinned') ? 'bulk_unpin' : 'bulk_pin'],
+                ['flag', 'flag', record.flagged ? 'row_unflag' : 'row_flag'],
                 ['delete', 'trash', record.deleted ? 'row_undelete' : 'row_delete'],
             ];
+            if (typeof rcmail.markasjunk_mark === 'function'
+                && (rcmail.env.messages?.[row.uid]?.mbox || rcmail.env.mailbox) !== rcmail.env.markasjunk_spam_mailbox) {
+                options.push(['spam', 'spam', 'row_spam']);
+            }
             for (const [action, iconName, label] of options) {
                 const button = el('button', 'tc-mail-context-action');
                 button.type = 'button';
@@ -850,6 +889,7 @@
                 menu.append(button);
             }
             menu.hidden = false;
+            menuOpenedAt = performance.now();
             const rect = row.getBoundingClientRect();
             const x = event.clientX > 0 ? event.clientX : rect.left + 12;
             const y = event.clientY > 0 ? event.clientY : rect.bottom;
@@ -916,15 +956,17 @@
             syncMailRow(row);
             observer?.observe(row);
             if (!observer) queueSnippet(row);
-            row.addEventListener('mouseenter', () => {
-                hovered = row; queueSnippet(row);
-                clearTimeout(hoverTimer);
-                hoverTimer = setTimeout(() => showTooltip(row), 450);
-            });
-            row.addEventListener('mouseleave', () => {
-                if (hovered === row) hovered = null;
-                clearTimeout(hoverTimer); tooltip.hidden = true;
-            });
+            for (const target of [title, snippet].filter(Boolean)) {
+                target.addEventListener('mouseenter', () => {
+                    hovered = row; queueSnippet(row);
+                    clearTimeout(hoverTimer);
+                    hoverTimer = setTimeout(() => showTooltip(row), 450);
+                });
+                target.addEventListener('mouseleave', () => {
+                    if (hovered === row) hovered = null;
+                    clearTimeout(hoverTimer); tooltip.hidden = true;
+                });
+            }
             row.addEventListener('contextmenu', event => openMenu(event, row));
         }
 
@@ -963,7 +1005,9 @@
                 choices[(index + (event.key === 'ArrowDown' ? 1 : choices.length - 1)) % choices.length]?.focus();
             }
         }, true);
-        wrapper?.addEventListener('scroll', closeMenu, { passive: true });
+        wrapper?.addEventListener('scroll', () => {
+            if (performance.now() - menuOpenedAt > 250) closeMenu();
+        }, { passive: true });
         window.addEventListener('resize', closeMenu);
     }
 

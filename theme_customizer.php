@@ -34,7 +34,7 @@ class theme_customizer extends rcube_plugin
         $this->load_config();
         $logos = $rc->config->get('skin_logo');
         if (!is_array($logos)) $logos = $logos ? ['*' => $logos] : [];
-        $logos['elastic:*'] = $this->url('assets/logoB.png');
+        $logos['elastic:*'] = $this->url('assets/logo-transparent.svg');
         $rc->config->set('skin_logo', $logos);
         if (!$rc->user || !$rc->user->ID) return;
         $this->initialized = true;
@@ -60,7 +60,7 @@ class theme_customizer extends rcube_plugin
         $rc->output->set_env('theme_customizer', [
             'settings' => $this->settings(), 'presets' => $this->presets(),
             'builtins' => $this->builtins(), 'images' => $this->gallery(),
-            'logo' => $rc->output->asset_url($this->url('assets/logoB.png')),
+            'logo' => $rc->output->asset_url($this->url('assets/logo-transparent.svg')),
             'api' => $rc->url('plugin.theme_customizer'),
             'image' => $rc->url('plugin.theme_customizer.image'),
             'formats' => $this->formats(),

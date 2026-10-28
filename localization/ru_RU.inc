@@ -2,10 +2,11 @@
 $labels = [
     'bulk_actions' => 'Действия с выбранными письмами', 'bulk_selected' => 'Выбрано',
     'bulk_markread' => 'Прочитано', 'bulk_markunread' => 'Не прочитано',
-    'bulk_moveto' => 'Переместить', 'bulk_delete' => 'Удалить',
+    'bulk_moveto' => 'Переместить', 'bulk_delete' => 'Удалить', 'bulk_spam' => 'Спам',
     'bulk_pin' => 'Закрепить', 'bulk_unpin' => 'Открепить',
     'row_flag' => 'Пометить флажком', 'row_unflag' => 'Снять флажок',
     'row_delete' => 'Удалить письмо', 'row_undelete' => 'Восстановить письмо',
+    'row_spam' => 'Пометить как спам',
     'row_read' => 'Отметить прочитанным', 'row_unread' => 'Отметить непрочитанным',
     'row_preview' => 'Текст письма', 'row_preview_empty' => 'Текст письма недоступен',
     'context_actions' => 'Действия с письмом',
