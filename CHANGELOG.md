@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.3 — 2026-10-28
+
+- Kept the desktop menu's About and Logout controls inside the sidebar after removing the logo slot. Improved navigation label fit on narrow desktop widths and contrast in the mobile menu.
+
 ## 0.14.2 — 2026-10-28
 
 - Removed the decorative logo slot from the authenticated task rail and moved Compose, Mail, and Contacts to the top. The mobile menu retains its Close control. The transparent linked logo remains on the login page.

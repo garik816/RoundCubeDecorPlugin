@@ -117,6 +117,7 @@ html.theme-customizer-enabled #layout-menu .popover-header .tc-logo-link {
 
 @media screen and (min-width: 769px) {
     html.theme-customizer-enabled #layout-menu {
+        position: relative;
         flex: 0 0 124px;
         width: 124px;
         min-width: 124px;
@@ -133,6 +134,22 @@ html.theme-customizer-enabled #layout-menu .popover-header .tc-logo-link {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1023px) {
+    html.theme-customizer-enabled #taskmenu a {
+        height: 62px;
+    }
+    html.theme-customizer-enabled #taskmenu a .inner {
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    html.theme-customizer-enabled #layout-menu #taskmenu a,
+    html.theme-customizer-enabled #layout-menu .special-buttons a {
+        color: #fff;
     }
 }
 
